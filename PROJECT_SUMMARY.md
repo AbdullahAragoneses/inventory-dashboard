@@ -1,36 +1,48 @@
-# Inventory Hub
+# Inventory Dashboard
 
 ## What it is
-One page with a collapsible side menu (modelled on Solstice's left nav) that opens each of
-Abdullah's tools inside the same window, so the team has one link instead of three:
-Proof Coin Dashboard, Stock Take Dashboard, SLI Generator.
+One page with a collapsible side menu that opens each of the inventory team's tools inside the
+same window, so the team has one link instead of three: Proof Coin Dashboard, Stock Take
+Dashboard, SLI Generator. Live since 2026-09-11.
+
+**Live link (share this):** https://abdullaharagoneses.github.io/inventory-dashboard/
+Repo: `AbdullahAragoneses/inventory-dashboard` (public, GitHub Pages from `master`).
 
 ## How it works (deliberately simple)
-`index.html` is a single file. The side menu and home tiles are generated from the `APPS`
-list at the top of the `<script>`. Choosing a tool loads its live URL into an `<iframe>`;
-the apps themselves are untouched. Remembers last tool + menu state per browser.
+`index.html` is a single static file. The side menu and home cards are generated from the `APPS`
+list near the top of the `<script>`. Choosing a tool loads its live URL into an `<iframe>`; the
+apps themselves are untouched. Light/dark toggle (top-right) is pushed into the embedded app via
+`postMessage({type:'invdash-theme'})`, which all three apps listen for. Remembers last tool,
+menu state and theme per browser.
 
-**To add a new app:** add one line to `APPS` (id, icon, label, url, blurb). Nothing else.
+**To add a new app:** add one line to `APPS` (id, icon, label, url, blurb, tint). Commit + push;
+Pages redeploys in about a minute.
 
-Pre-check done 2026-09-11: none of the three apps send X-Frame-Options / CSP frame-ancestors,
-so embedding works. If a future app refuses to embed, the "Open in new tab" link in the
-top bar is the fallback.
+**Local preview:** `python -m http.server 8787` in this folder, then
+`http://localhost:8787/?local` — `?local` swaps the app URLs to localhost dev servers
+(Proof 8789 static, SLI 8788 static, Stock Take 8000 uvicorn). `&theme=dark` forces a theme.
 
-## Current state (2026-09-11)
-- v1 built and verified locally in Chrome (home tiles, side menu, SLI loads inside frame,
-  Proof Dashboard login form loads inside frame).
-- NOT yet hosted. Next step: put it on GitHub Pages (same as SLI Generator) so the team can
-  use one link. GitHub Pages has no usage quota, unlike Vercel Hobby.
-- Proof Coin Dashboard login works again as of 2026-09-11 (project moved to the Bullion Boeties
-  Vercel team with a fresh store, 0 coins, staff logins recreated — see Proof Dashboard project).
-- Stock Take tile still points at stock-take-dashboard.vercel.app, which is the OLD personal
-  project until Abdullah moves that domain to the new Bullion Boeties project (open item there).
+## Design
+Second reference Abdullah supplied (light sidebar, grey line borders, few colours), recoloured
+with his brand blues: **Venice Blue #16587B** primary, **Rock Blue #84B3CE** lighter companion,
+Tailwind grey scale for everything else. Both modes. The three apps share the exact same tokens
+(their `:root` / `[data-theme="light"]` blocks were rewritten 2026-09-11) so the whole window
+reads as one product.
+
+## Where the apps live (2026-09-11)
+| Tool | Live URL | Hosting |
+|---|---|---|
+| Proof Coin Dashboard | https://proof-dashboard-eight.vercel.app | Vercel, team **Bullion Boeties** (Pro) |
+| Stock Take Dashboard | https://stock-take-dashboard-seven.vercel.app | Vercel, team **Bullion Boeties** (Pro) |
+| SLI Generator | https://abdullaharagoneses.github.io/sli-generator/ | GitHub Pages |
+
+The old personal-account Stock Take URL (`stock-take-dashboard.vercel.app`) still resolves but
+serves the OLD look and the suspended Blob store — retire it; the dashboard points at `-seven`.
 
 ## Key files
-- `Projects\Inventory Hub\index.html` — the whole app.
+- `index.html` — the whole app. `PROJECT_SUMMARY.md` — this file.
 
 ## Pending / ideas
-- Host on GitHub Pages, share link with Zubayr/Angie.
-- Later (only if wanted): shared single login across Proof + Stock Take (both already use
-  the same name+PIN signed-token pattern).
-- Could become the shell for the personal Daily Desk plan too.
+- Share the link with Zubayr and Angie; retire the old Stock Take URL on the personal account.
+- Optional: single shared login across Proof + Stock Take (both use the same name+PIN pattern).
+- Optional: Merino cream (#F5EEDD) page background variant — Abdullah preferred white for now.
