@@ -306,10 +306,11 @@
         <div class="body">
           <div class="field"><label>Service</label><select id="mSvc"></select></div>
           <div class="field" style="grid-template-columns:1fr 240px"><label>Collect from <small>MDS hub</small></label><select id="mFrom"></select></div>
-          <div class="field" style="grid-template-columns:1fr 240px"><label>Deliver to <small>MDS hub nearest the town</small></label><select id="mTo"></select></div>
-          <div class="field" style="grid-template-columns:1fr 240px"><label>Delivery town <small>fills the area type from your waybills</small></label><input id="mTown" list="mTownList" style="text-align:left" placeholder="e.g. Lephalale"><datalist id="mTownList"></datalist></div>
-          <div class="field"><label>Collection area</label><select id="mFromCat"><option>Major</option><option>Main</option><option>Regional</option><option>Outlying</option></select></div>
-          <div class="field"><label>Delivery area</label><select id="mToCat"><option>Major</option><option>Main</option><option>Regional</option><option>Outlying</option></select></div>
+          <div class="field" style="grid-template-columns:1fr 240px"><label>Collection suburb <small>optional; defaults to the hub town</small></label><input id="mFromSub" list="mFromList" style="text-align:left" placeholder="type to search"><datalist id="mFromList"></datalist></div>
+          <div class="field" style="grid-template-columns:1fr 240px"><label>Deliver to <small>MDS hub</small></label><select id="mTo"></select></div>
+          <div class="field" style="grid-template-columns:1fr 240px"><label>Delivery suburb <small>only suburbs served from this hub</small></label><input id="mToSub" list="mToList" style="text-align:left" placeholder="type to search, e.g. Wood"><datalist id="mToList"></datalist></div>
+          <div class="field calc"><label>Collection area <small>automatic</small></label><b id="mFromCatOut">–</b></div>
+          <div class="field calc"><label>Delivery area <small>automatic</small></label><b id="mToCatOut">–</b></div>
           <div class="live" id="mAreaNote"></div>
           <div class="field"><label>Actual weight <small>kg</small></label><input id="mKg" type="number" min="0" step="0.1"></div>
           <div class="field" style="grid-template-columns:1fr 210px"><label>Box size <small>L × W × H, cm</small></label>
@@ -317,8 +318,8 @@
           <div class="field calc"><label>Volumetric weight <small>L × W × H ÷ <span id="mDiv"></span></small></label><b id="mVol">–</b></div>
           <div class="field calc"><label>Extra kg charged <small>started kg above <span id="mIncl"></span> kg included</small></label><b id="mExtra">–</b></div>
           <div class="sub-h">Surcharges</div>
-          <div class="field" style="grid-template-columns:1fr 240px"><label>Location type <small>high risk, farm, estate…</small></label><select id="mLoc"></select></div>
-          <div class="field"><label>Remote town surcharge <small>MDS adds this for some towns</small></label><div class="prefix"><input id="mTownSC" type="number" min="0" step="0.01"></div></div>
+          <div class="field" style="grid-template-columns:1fr 240px"><label>Location type <small id="mLocHint">high risk sets itself from the suburb</small></label><select id="mLoc"></select></div>
+          <div class="field calc"><label>Remote town surcharge <small id="mTownHint">automatic</small></label><b id="mTownSCOut">–</b></div>
           <div class="field" style="grid-template-columns:1fr 240px"><label>Delivery time</label><select id="mTime"></select></div>
           <div class="field chk"><label>Delivery PIN <small>R0.50; only in MDS's own branch areas</small></label><button class="switch" id="mPin" role="switch" aria-checked="true"></button></div>
           <div class="actions"><button class="btn" id="mReset">Reset inputs</button></div>
@@ -360,7 +361,7 @@
       <div class="actions"><button class="btn" id="mResetRates">Reset to rate sheet</button></div>
     </div>
   </details>
-</div></div>
+</div>
 
 <div class="overlay" id="overlay"><div class="wrap">
   <div class="quote" id="quote">
@@ -874,93 +875,147 @@
     const clone = o => JSON.parse(JSON.stringify(o));
     const get = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : clone(d); } catch { return clone(d); } };
     const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+    const DEF = { svc: 'ONX', from: 'JNB', fromSub: '', to: 'CPT', toSub: 'Woodstock (Cape Town)', loc: 'Business premises', kg: 0.5, l: 25, w: 20, h: 10, time: 'none', pin: true };
     let rates = { ...clone(MDS_RATES), ...get('courier.mds.rates.v1', MDS_RATES) };
-    let inp = { ...clone(MDS_DEFAULT_INPUTS), ...get('courier.mds.inputs.v1', MDS_DEFAULT_INPUTS) };
-    const SEL = [['mSvc', 'svc'], ['mFrom', 'from'], ['mTo', 'to'], ['mFromCat', 'fromCat'], ['mToCat', 'toCat'], ['mLoc', 'loc'], ['mTime', 'time']];
-    const NUM = [['mKg', 'kg'], ['mL', 'l'], ['mW', 'w'], ['mH', 'h'], ['mTownSC', 'townSC']];
-    let last;
+    let inp = { ...clone(DEF), ...get('courier.mds.inputs.v2', DEF) };
+    const SEL = [['mSvc', 'svc'], ['mFrom', 'from'], ['mTo', 'to'], ['mLoc', 'loc'], ['mTime', 'time']];
+    const NUM = [['mKg', 'kg'], ['mL', 'l'], ['mW', 'w'], ['mH', 'h']];
+    const codes = MDS_DATA.hubs.map(h => h[0]);
+    const hubName = code => (MDS_DATA.hubs.find(h => h[0] === code) || [code, code])[1];
+    let SUB = null, byHub = {}, hubCat = {}, last;
+    const guessCat = code => ['JNB', 'PTA', 'CPT', 'DUR', 'PMB', 'BFN', 'ELS', 'NLP', 'PLZ', 'GRJ'].includes(code) ? 'Major' : 'Main';
 
-    function build() {
-      $('mSvc').innerHTML = Object.entries(MDS_DATA.svc).map(([k, s]) => `<option value="${k}">${s.name} (${k})</option>`).join('');
-      const hubs = MDS_DATA.hubs.map(([c, n]) => `<option value="${c}">${n} · ${c}</option>`).join('');
-      $('mFrom').innerHTML = hubs; $('mTo').innerHTML = hubs;
-      $('mTownList').innerHTML = Object.entries(MDS_DATA.towns).sort().map(([t, c]) => `<option value="${t}">${c}</option>`).join('');
-      $('mLoc').innerHTML = Object.entries(rates.loc).map(([k, v]) => `<option value="${k}">${k}${v ? ' · R' + v : ''}</option>`).join('');
-      $('mTime').innerHTML = Object.entries(MDS_TIME_LABELS).map(([k, l]) => `<option value="${k}">${l}${rates.time[k] ? ' · R' + N(rates.time[k]) : ''}</option>`).join('');
+    // Suburb list (MDS export, 25 Sep 2026) loads from mds-suburbs.json; until then the hub towns' categories are used.
+    fetch('mds-suburbs.json').then(r => r.json()).then(d => {
+      SUB = d;
+      for (const s of d.subs) {
+        const [town, hubIx, townSC] = d.towns[s[1]]; const hub = codes[hubIx];
+        (byHub[hub] = byHub[hub] || []).push({ name: s[0], town, cat: d.cats[s[2]], risk: !!s[3], townSC, key: s[0] + ' (' + town + ')' });
+      }
+      for (const h of MDS_DATA.hubs) {
+        const town = { Witbank: 'Emalahleni', Nylstroom: 'Modimolle', Ladysmith: 'uMnambithi' }[h[1]] || h[1];
+        const cnt = {}; for (const s of byHub[h[0]] || []) if (s.town === town) cnt[s.cat] = (cnt[s.cat] || 0) + 1;
+        const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+        hubCat[h[0]] = top ? top[0] : guessCat(h[0]);
+      }
+      fillLists(); render();
+    }).catch(() => { $('mAreaNote').innerHTML = '<span class="pill manual">OFFLINE</span> Suburb list did not load; areas use the hub town.'; });
+
+    const esc = s => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    const optHtml = hub => (byHub[hub] || []).map(s => '<option value="' + esc(s.key) + '">' + s.cat + (s.risk ? ' · high risk' : '') + '</option>').join('');
+    function fillLists() { $('mFromList').innerHTML = optHtml(inp.from); $('mToList').innerHTML = optHtml(inp.to); }
+    function resolve(text, hub) {
+      if (!SUB || !text) return null;
+      const t = text.trim().toLowerCase(), list = byHub[hub] || [];
+      return list.find(s => s.key.toLowerCase() === t) || list.find(s => s.name.toLowerCase() === t) || null;
     }
-    function writeInputs() { for (const [id, k] of SEL) $(id).value = inp[k]; for (const [id, k] of NUM) $(id).value = inp[k]; $('mTown').value = inp.town || ''; $('mPin').setAttribute('aria-checked', !!inp.pin); }
+    function build() {
+      $('mSvc').innerHTML = Object.entries(MDS_DATA.svc).map(([k, s]) => '<option value="' + k + '">' + s.name + ' (' + k + ')</option>').join('');
+      const hubs = MDS_DATA.hubs.map(([c, n]) => '<option value="' + c + '">' + n + ' · ' + c + '</option>').join('');
+      $('mFrom').innerHTML = hubs; $('mTo').innerHTML = hubs;
+      $('mLoc').innerHTML = Object.entries(rates.loc).map(([k, v]) => '<option value="' + k + '">' + k + (v ? ' · R' + v : '') + '</option>').join('');
+      $('mTime').innerHTML = Object.entries(MDS_TIME_LABELS).map(([k, l]) => '<option value="' + k + '">' + l + (rates.time[k] ? ' · R' + N(rates.time[k]) : '') + '</option>').join('');
+    }
+    function writeInputs() {
+      for (const [id, k] of SEL) $(id).value = inp[k];
+      for (const [id, k] of NUM) $(id).value = inp[k];
+      $('mFromSub').value = inp.fromSub || ''; $('mToSub').value = inp.toSub || ''; $('mPin').setAttribute('aria-checked', !!inp.pin);
+    }
     function readInputs() {
       for (const [id, k] of SEL) inp[k] = $(id).value;
       for (const [id, k] of NUM) inp[k] = +$(id).value || 0;
-      inp.town = $('mTown').value.trim(); inp.pin = $('mPin').getAttribute('aria-checked') === 'true';
-      put('courier.mds.inputs.v1', inp);
+      inp.fromSub = $('mFromSub').value.trim(); inp.toSub = $('mToSub').value.trim(); inp.pin = $('mPin').getAttribute('aria-checked') === 'true';
+      put('courier.mds.inputs.v2', inp);
     }
-    function onTown() {
-      const t = $('mTown').value.trim();
-      const hit = Object.keys(MDS_DATA.towns).find(k => k.toLowerCase() === t.toLowerCase());
-      if (hit) { $('mToCat').value = MDS_DATA.towns[hit]; $('mTownSC').value = MDS_DATA.townSC[hit] || 0; }
-      render();
+    function derive() {
+      const fs = resolve(inp.fromSub, inp.from), ts = resolve(inp.toSub, inp.to);
+      const fromCat = fs ? fs.cat : (hubCat[inp.from] || guessCat(inp.from));
+      const toCat = ts ? ts.cat : (hubCat[inp.to] || guessCat(inp.to));
+      const risk = !!(ts && ts.risk);
+      const locFee = rates.loc[inp.loc] || 0;
+      const loc = risk && locFee < rates.loc['High risk'] ? 'High risk' : inp.loc;
+      const townSC = Math.max(ts ? ts.townSC : 0, fs ? fs.townSC : 0);
+      const scTown = townSC ? (ts && ts.townSC === townSC ? ts.town : fs.town) : '';
+      return { fs, ts, fromCat, toCat, risk, loc, townSC, scTown, town: ts ? ts.town : hubName(inp.to) };
     }
+    const place = (sub, hub) => sub ? sub.name + ', ' + sub.town : hubName(hub);
     function render() {
       readInputs();
-      const c = last = mdsCalc(inp, rates, MDS_DATA);
+      const d = derive();
+      const c = last = mdsCalc({ ...inp, fromCat: d.fromCat, toCat: d.toCat, loc: d.loc, townSC: d.townSC, town: d.scTown || d.town }, rates, MDS_DATA);
+      c.derived = d;
       const S = MDS_DATA.svc[inp.svc];
       $('mDiv').textContent = S.vol; $('mIncl').textContent = c.incl;
       $('mVol').textContent = N(c.vol, 2) + ' kg'; $('mExtra').textContent = c.extra + ' kg';
-      const hit = Object.keys(MDS_DATA.towns).find(k => k.toLowerCase() === (inp.town || '').toLowerCase());
-      $('mAreaNote').innerHTML = hit ? `<span class="pill">FROM WAYBILLS</span> ${hit} is ${MDS_DATA.towns[hit]} on your MDS history${MDS_DATA.townSC[hit] ? `, with a R${N(MDS_DATA.townSC[hit])} town surcharge` : ''}.`
-        : inp.town ? `<span class="pill manual">CHECK</span> ${inp.town} isn't in your waybill history. Look up its area type on MDS's Suburbs page.` : '';
+      $('mFromCatOut').textContent = d.fromCat + (d.fs ? '' : ' (hub town)'); $('mToCatOut').textContent = d.toCat + (d.ts ? '' : ' (hub town)');
+      const msgs = [];
+      if (!SUB) msgs.push('<span class="pill manual">LOADING</span> suburb list…');
+      else if (d.ts) msgs.push('<span class="pill">MDS LIST</span> ' + d.ts.name + ', ' + d.ts.town + ': ' + d.ts.cat + (d.ts.risk ? ', high risk' : ''));
+      else if (inp.toSub) msgs.push('<span class="pill manual">NOT FOUND</span> "' + esc(inp.toSub) + '" isn\'t served from ' + hubName(inp.to) + '. Pick one from the list, or change Deliver to.');
+      else msgs.push('<span class="pill manual">NO SUBURB</span> using the ' + hubName(inp.to) + ' town. Pick the delivery suburb.');
+      if (SUB && inp.fromSub && !d.fs) msgs.push('<span class="pill manual">NOT FOUND</span> collection suburb "' + esc(inp.fromSub) + '"');
+      msgs.push('→ <b>' + c.type + ' rate</b>');
+      $('mAreaNote').innerHTML = msgs.join(' ');
+      $('mLocHint').innerHTML = d.risk ? '<b style="color:var(--warning-darker)">High risk: MDS flags this suburb</b>' : 'high risk sets itself from the suburb';
+      $('mTownSCOut').textContent = R(d.townSC);
+      const remote = ['Regional', 'Outlying'].includes(d.fromCat) || ['Regional', 'Outlying'].includes(d.toCat);
+      $('mTownHint').textContent = d.townSC ? d.scTown + ', from your MDS invoices' : remote ? 'none on your invoices for this town' : 'none';
       $('mkType').textContent = c.type; $('mkKg').textContent = N(c.chargeKg, 2) + ' kg'; $('mkFuel').textContent = N(rates.fuelPct, 1) + '%';
       $('mkBy').textContent = c.byMds ? 'MDS branch' : c.byRws ? 'RWS (partner)' : 'Check';
-      $('mRows').innerHTML = c.lines.filter(l => l.on).map(l => `<tr><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td></tr>`).join('');
-      $('mRound').textContent = `R${N(c.raw)} rounded to the nearest 20c`;
+      $('mRows').innerHTML = c.lines.filter(l => l.on).map(l => '<tr><td>' + l.label + '<small>' + l.sub + '</small></td><td>' + R(l.ex) + '</td></tr>').join('');
+      $('mRound').textContent = 'R' + N(c.raw) + ' rounded to the nearest 20c';
       $('mSub').textContent = R(c.sub); $('mVat').textContent = R(c.vat); $('mTot').textContent = R(c.total);
       $('mStamp').textContent = new Date().toLocaleDateString('en-ZA');
       const notes = [];
-      if (c.byRws) notes.push(`<b>${MDS_DATA.hubs.find(h => h[0] === inp.to)[1]} is delivered by RWS, MDS's sister company.</b> Kathy says only MDS's own branch areas get PIN delivery.` + (inp.pin ? ' Switch the PIN off.' : ''));
-      else if (!c.byMds) notes.push(`${MDS_DATA.hubs.find(h => h[0] === inp.to)[1]} isn't on Kathy's MDS or RWS branch list. Confirm with MDS who delivers there.`);
-      if (c.remote) notes.push(`${c.worst} area: MDS adds R${N(c.reg)} plus R${N(rates.remoteKg)} per extra kg, and may add a town surcharge on top.`);
+      if (c.byRws) notes.push('<b>' + hubName(inp.to) + ' is delivered by RWS, MDS\'s sister company.</b> Kathy says only MDS\'s own branch areas get PIN delivery.' + (inp.pin ? ' Switch the PIN off.' : ''));
+      else if (!c.byMds) notes.push(hubName(inp.to) + ' isn\'t on Kathy\'s MDS or RWS branch list. Confirm with MDS who delivers there.');
+      if (remote && !d.townSC) notes.push('<b>' + c.worst + ' town: check for a town surcharge.</b> MDS adds one for some remote towns (Beaufort West R561.80, Prieska R100). It isn\'t published, so only towns on your past invoices fill in by themselves.');
+      if (d.risk) notes.push('High-risk suburb: MDS adds R' + N(rates.loc['High risk']) + ' (no fuel on it).');
       const room = c.incl * S.vol;
-      if (c.extra === 0 && c.vol > c.incl * 0.85) notes.push(`<b>Close to the weight limit.</b> The box is ${N(c.vol, 2)} kg volumetric against ${c.incl} kg included. MDS re-weighs parcels: in your history a 2.2 kg box turned R188 into R270.20. Keep the box under ${N(room / 1000, 0)} litres (L × W × H under ${room} cm³).`);
-      if (c.extra > 0) notes.push(`${c.extra} extra kg at ${R(c.kgRate)} each (before discount). A smaller box saves ${R(c2(c.wsc * 0.89 * (1 + rates.fuelPct / 100)))} if it gets under ${c.incl} kg.`);
-      notes.push(`Fuel is ${N(rates.fuelPct, 1)}% (rate sheet 25 Sep 2026). It changes monthly: 24.6% in April, 29.4% in June. Update it in the rate card.`);
+      if (c.extra === 0 && c.vol > c.incl * 0.85) notes.push('<b>Close to the weight limit.</b> ' + N(c.vol, 2) + ' kg volumetric against ' + c.incl + ' kg included. MDS re-weighs parcels: in your history a 2.2 kg box turned R188 into R270.20. Keep L × W × H under ' + room + ' cm³.');
+      if (c.extra > 0) notes.push(c.extra + ' extra kg at ' + R(c.kgRate) + ' each (before discount). Getting under ' + c.incl + ' kg saves about ' + R(c2(c.wsc * 0.89 * (1 + rates.fuelPct / 100))) + '.');
+      notes.push('Fuel is ' + N(rates.fuelPct, 1) + '% (rate sheet 25 Sep 2026). It changes monthly: 24.6% in April, 29.4% in June. Update it in the rate card.');
       $('mNote').innerHTML = notes.join('<br>');
     }
     function buildRates() {
       const labels = { fuelPct: 'Fuel %', discountPct: 'Account discount %', docFee: 'Document fee (R)', pinFee: 'Delivery PIN (R)', regionalSC: 'Regional surcharge (R)', outlyingSC: 'Outlying surcharge (R)', remoteKg: 'Regional/outlying per kg (R)' };
       $('mRates').innerHTML = '';
       for (const [k, lbl] of Object.entries(labels)) {
-        const d = document.createElement('div'); d.className = 'field';
-        d.innerHTML = `<label>${lbl}</label><input type="number" step="any" value="${rates[k]}">`;
-        d.querySelector('input').oninput = e => { const n = parseFloat(e.target.value); if (isNaN(n)) return; rates[k] = n; put('courier.mds.rates.v1', rates); render(); };
-        $('mRates').appendChild(d);
+        const el = document.createElement('div'); el.className = 'field';
+        el.innerHTML = '<label>' + lbl + '</label><input type="number" step="any" value="' + rates[k] + '">';
+        el.querySelector('input').oninput = e => { const n = parseFloat(e.target.value); if (isNaN(n)) return; rates[k] = n; put('courier.mds.rates.v1', rates); render(); };
+        $('mRates').appendChild(el);
       }
     }
-    const hubName = code => (MDS_DATA.hubs.find(h => h[0] === code) || [code, code])[1];
     function summaryText() {
-      const c = last, i = inp;
-      const l = c.lines.filter(x => x.on).map(x => `${x.label.padEnd(22)} ${R(x.ex).padStart(12)}`).join('\n');
-      return `MDS Collivery quote – ${new Date().toLocaleDateString('en-ZA')}\n${MDS_DATA.svc[i.svc].name}: ${hubName(i.from)} → ${i.town || hubName(i.to)} (${c.type})\nWeight: ${N(c.chargeKg)} kg chargeable (actual ${N(+i.kg || 0)} kg, volumetric ${N(c.vol)} kg)\n\n${l}\n${'Sub total'.padEnd(22)} ${R(c.sub).padStart(12)}\n${'VAT'.padEnd(22)} ${R(c.vat).padStart(12)}\n${'TOTAL'.padEnd(22)} ${R(c.total).padStart(12)}`;
+      const c = last, i = inp, d = c.derived;
+      const l = c.lines.filter(x => x.on).map(x => x.label.padEnd(22) + ' ' + R(x.ex).padStart(12)).join('\n');
+      return 'MDS Collivery quote – ' + new Date().toLocaleDateString('en-ZA') + '\n' + MDS_DATA.svc[i.svc].name + ': ' + place(d.fs, i.from) + ' → ' + place(d.ts, i.to) + ' (' + c.type + ')\nWeight: ' + N(c.chargeKg) + ' kg chargeable (actual ' + N(+i.kg || 0) + ' kg, volumetric ' + N(c.vol) + ' kg)\n\n' + l +
+        '\n' + 'Sub total'.padEnd(22) + ' ' + R(c.sub).padStart(12) + '\n' + 'VAT'.padEnd(22) + ' ' + R(c.vat).padStart(12) + '\n' + 'TOTAL'.padEnd(22) + ' ' + R(c.total).padStart(12);
     }
     function fillQuote() {
-      const c = last, i = inp;
+      const c = last, i = inp, d = c.derived;
       $('qTitle').textContent = 'MDS Collivery delivery cost';
-      $('qDate').innerHTML = `<b>${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</b><br>${MDS_DATA.svc[i.svc].name}`;
-      $('qShip').innerHTML = `<span>Shipment</span><div><b>${hubName(i.from)} → ${i.town || hubName(i.to)}</b><i>${N(+i.kg || 0, 2)} kg · ${i.l}×${i.w}×${i.h} cm · ${N(c.chargeKg, 2)} kg chargeable · ${c.type}</i></div>`;
+      $('qDate').innerHTML = '<b>' + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + '</b><br>' + MDS_DATA.svc[i.svc].name;
+      $('qShip').innerHTML = '<span>Shipment</span><div><b>' + place(d.fs, i.from) + ' → ' + place(d.ts, i.to) + '</b><i>' + N(+i.kg || 0, 2) + ' kg · ' + i.l + '×' + i.w + '×' + i.h + ' cm · ' + N(c.chargeKg, 2) + ' kg chargeable · ' + c.type + '</i></div>';
       $('qFacts').innerHTML = [['Rate type', c.type], ['Chargeable', N(c.chargeKg, 2) + ' kg'], ['Fuel', N(rates.fuelPct, 1) + '%'], ['Delivered by', c.byMds ? 'MDS' : c.byRws ? 'RWS' : 'Check']]
-        .map(([k, val]) => `<div class="fact"><span>${k}</span><b>${val}</b></div>`).join('');
-      $('qRows').innerHTML = c.lines.filter(l => l.on).map(l => `<tr><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td></td><td></td></tr>`).join('') +
-        `<tr><td>Subtotal<small>rounded to the nearest 20c</small></td><td>${R(c.sub)}</td><td>${R(c.vat)}</td><td>${R(c.total)}</td></tr>` +
-        `<tr class="grand"><td>Total delivery charge<small>incl. VAT</small></td><td></td><td></td><td>${R(c.total)}</td></tr>`;
-      $('qFoot').innerHTML = `<div>Account SABIS · MDS rate sheet 25 Sep 2026</div><div>VAT on the subtotal</div>`;
+        .map(([k, val]) => '<div class="fact"><span>' + k + '</span><b>' + val + '</b></div>').join('');
+      $('qRows').innerHTML = c.lines.filter(l => l.on).map(l => '<tr><td>' + l.label + '<small>' + l.sub + '</small></td><td>' + R(l.ex) + '</td><td></td><td></td></tr>').join('') +
+        '<tr><td>Subtotal<small>rounded to the nearest 20c</small></td><td>' + R(c.sub) + '</td><td>' + R(c.vat) + '</td><td>' + R(c.total) + '</td></tr>' +
+        '<tr class="grand"><td>Total delivery charge<small>incl. VAT</small></td><td></td><td></td><td>' + R(c.total) + '</td></tr>';
+      $('qFoot').innerHTML = '<div>Account SABIS · MDS rate sheet 25 Sep 2026</div><div>VAT on the subtotal</div>';
     }
 
     build(); buildRates(); writeInputs(); render();
-    for (const [id] of SEL) $(id).addEventListener('change', render);
+    for (const [id] of SEL) $(id).addEventListener('change', () => {
+      if (id === 'mFrom') $('mFromSub').value = '';
+      if (id === 'mTo') $('mToSub').value = '';
+      readInputs(); fillLists(); render();
+    });
     for (const [id] of NUM) $(id).addEventListener('input', render);
-    $('mTown').addEventListener('change', onTown); $('mTown').addEventListener('input', () => { if (Object.keys(MDS_DATA.towns).some(k => k.toLowerCase() === $('mTown').value.trim().toLowerCase())) onTown(); });
+    for (const id of ['mFromSub', 'mToSub']) { $(id).addEventListener('input', render); $(id).addEventListener('change', render); }
     $('mPin').onclick = e => { e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
-    $('mReset').onclick = () => { inp = clone(MDS_DEFAULT_INPUTS); writeInputs(); render(); };
+    $('mReset').onclick = () => { inp = clone(DEF); writeInputs(); fillLists(); render(); };
     $('mResetRates').onclick = () => { rates = clone(MDS_RATES); put('courier.mds.rates.v1', rates); buildRates(); render(); };
     $('mCopy').onclick = async () => { try { await navigator.clipboard.writeText(summaryText()); toast('Summary copied'); } catch { toast('Copy blocked by browser'); } };
     $('mQuoteBtn').onclick = () => { fillQuote(); $('overlay').classList.add('on'); };

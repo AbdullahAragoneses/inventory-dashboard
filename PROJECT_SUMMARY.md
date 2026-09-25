@@ -142,6 +142,15 @@ from Kathy Bergoff's 16 Sep 2026 email; PIN delivery only in MDS branch areas. T
 10 real waybills. **Watch:** fuel changes monthly (24.6% Apr to 29.4% Jun); MDS re-weighs parcels (2.2 kg volumetric
 turned R188 into R270.20).
 
+**MDS suburbs (same day, Abdullah's ask):** `courier/mds-suburbs.json` = the MDS portal's Suburbs export
+(Administration > Suburbs > Export, 25 Sep 2026): 9,828 suburbs in 2,126 towns with category (Major/Main/Regional/
+Outlying) and MDS's High Risk flag. Each town is assigned to its nearest of the 32 rate-sheet hubs by coordinates, so
+the Delivery suburb list only offers suburbs served from the chosen Deliver-to hub. Collection area, delivery area,
+rate type (Local/Major/Main/Regional/Outlying), high-risk location fee (R130) and the remote town surcharge now all
+fill in by themselves. Town surcharges are not published by MDS, so only the six towns seen on invoices are known
+(Beaufort West R561.80, Chintsa East R150, Kokstad R120, Prieska R100, Phalaborwa R60, Lime Acres R25); other
+Regional/Outlying towns show a "check" note.
+
 ## PUBLIC REPO WARNING
 `inventory-dashboard` is a PUBLIC GitHub repo served on GitHub Pages. The courier page now embeds negotiated account
 pricing (MDS rate sheet, RAM quote figures, BRINKS rates). Pushing publishes them. Decide before pushing: make the
