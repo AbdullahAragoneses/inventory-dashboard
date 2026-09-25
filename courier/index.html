@@ -88,6 +88,41 @@
   .rates { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px 24px; }
   .placeholder { padding: 40px 24px; text-align: center; color: var(--text-2); }
   .placeholder h4 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+  .field.calc b { text-align: right; font-weight: 600; padding-right: 10px; }
+  .live { font-size: 11px; color: var(--text-3); padding: 0 0 6px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .live.err { color: var(--warn); }
+  .live a { color: var(--active-text); cursor: pointer; text-decoration: underline; }
+  .live .pill { padding: 1px 7px; border-radius: 999px; background: var(--active-bg); color: var(--active-text); font-weight: 600; }
+  .live .pill.manual { background: var(--warn-bg); color: var(--warn); }
+
+  /* Quote card: a clean, self-contained sheet designed for a screenshot */
+  .overlay { position: fixed; inset: 0; background: rgba(17,24,39,.55); display: none; align-items: flex-start; justify-content: center; padding: 32px 16px; overflow: auto; z-index: 10; }
+  .overlay.on { display: flex; }
+  .quote { width: 640px; max-width: 100%; background: #fff; color: #111827; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.35); font-variant-numeric: tabular-nums; }
+  .quote .qh { background: linear-gradient(135deg, #16587B, #124A68); color: #fff; padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; }
+  .quote .qh .brand { display: flex; align-items: center; gap: 12px; }
+  .quote .qh .mark { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,.15); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+  .quote .qh b { display: block; font-size: 17px; font-weight: 700; }
+  .quote .qh span { display: block; font-size: 12px; opacity: .8; }
+  .quote .qh .date { text-align: right; font-size: 12px; opacity: .9; }
+  .quote .qb { padding: 22px 28px 26px; }
+  .quote .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .quote .fact { padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 10px; background: #F9FAFB; }
+  .quote .fact span { display: block; font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: #6B7280; margin-bottom: 3px; white-space: nowrap; }
+  .quote .fact b { font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .quote table { width: 100%; border-collapse: collapse; }
+  .quote th { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: #6B7280; font-weight: 500; padding: 6px 4px; border-bottom: 1px solid #E5E7EB; text-align: right; }
+  .quote th:first-child { text-align: left; }
+  .quote td { padding: 10px 4px; border-bottom: 1px solid #F3F4F6; text-align: right; font-size: 14px; white-space: nowrap; }
+  .quote td:first-child { text-align: left; }
+  .quote td:first-child small { display: block; font-size: 11px; color: #6B7280; white-space: normal; }
+  .quote tr.grand td { border-top: 2px solid #16587B; border-bottom: none; padding-top: 14px; font-size: 20px; font-weight: 700; color: #16587B; }
+  .quote tr.grand td:first-child { font-size: 15px; color: #111827; }
+  .quote .qf { display: flex; justify-content: space-between; gap: 12px; margin-top: 16px; font-size: 11px; color: #6B7280; flex-wrap: wrap; }
+  .quote .qf b { color: #111827; font-weight: 600; }
+  .qactions { width: 640px; max-width: 100%; display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+  .qactions .btn { background: #fff; color: #111827; border-color: #D1D5DB; }
+  .overlay .wrap { display: flex; flex-direction: column; align-items: center; }
   .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; }
   .toast.show { opacity: 1; }
 </style>
@@ -95,7 +130,7 @@
 <body>
 
 <div class="tabs" id="tabs">
-  <button class="tab on" data-view="brinks">Brinks</button>
+  <button class="tab on" data-view="brinks">BRINKS</button>
   <button class="tab" data-view="ram">RAM <span class="soon">coming</span></button>
   <button class="tab" data-view="mds">MDS <span class="soon">coming</span></button>
 </div>
@@ -108,12 +143,15 @@
         <h3>Shipment <small>what is moving</small></h3>
         <div class="body">
           <div class="field"><label>Destination</label><select id="dest"></select></div>
-          <div class="field"><label>Units <small>coins / bars (oz for Krugerrands)</small></label><input id="qty" type="number" min="0" step="1"></div>
-          <div class="field"><label>Unit price <small>current price per unit</small></label><div class="prefix"><input id="price" type="number" min="0" step="1"></div></div>
+          <div class="field"><label>Metal <small>drives the live spot price</small></label><select id="metal"><option value="gold">Gold</option><option value="silver">Silver</option><option value="platinum">Platinum</option></select></div>
+          <div class="field"><label>Units <small>coins / bars</small></label><input id="qty" type="number" min="0" step="1"></div>
           <div class="field"><label>Weight per unit <small>grams. 31.1035 = 1 oz, 1000 = 1 kg bar</small></label><input id="unitG" type="number" min="0" step="0.0001"></div>
+          <div class="field calc"><label>Total weight <small>units × weight per unit</small></label><b id="totalKg">–</b></div>
+          <div class="field"><label>Unit price <small id="priceHint">live spot × unit weight</small></label><div class="prefix"><input id="price" type="number" min="0" step="1"></div></div>
+          <div class="live" id="live">Fetching live spot…</div>
           <div class="field"><label>Insure at <small>replacement uplift on top of spot</small></label>
             <select id="uplift"><option value="0">Spot value</option><option value="gold">Gold +4.5%</option><option value="silver">Silver +8%</option></select></div>
-          <div class="field chk"><label>Admin fee <small>only if Brinks opens / tampers with the package</small></label><button class="switch" id="admin" role="switch" aria-checked="true"></button></div>
+          <div class="field chk"><label>Admin fee <small>only if BRINKS opens / tampers with the package</small></label><button class="switch" id="admin" role="switch" aria-checked="true"></button></div>
           <div class="field chk"><label>Weight surcharge over 4 kg <small>not applied on local runs</small></label><button class="switch" id="surcharge" role="switch" aria-checked="false"></button></div>
           <div class="field chk"><label>VAT on insurance &amp; admin too <small>off = VAT on delivery only (sheet total)</small></label><button class="switch" id="vatAll" role="switch" aria-checked="false"></button></div>
           <div class="actions"><button class="btn" id="reset">Reset inputs</button></div>
@@ -141,14 +179,14 @@
             <div class="kpi"><span>Cost per unit</span><b id="kUnit">–</b></div>
           </div>
           <div class="note" id="note"></div>
-          <div class="actions"><button class="btn primary" id="copy">Copy summary</button></div>
+          <div class="actions"><button class="btn primary" id="quoteBtn">Quote card</button><button class="btn" id="copy">Copy summary</button></div>
         </div>
       </div>
     </div>
   </div>
 
   <details class="card" style="margin-top:20px">
-    <summary>Rate card <small>from BRINKS CALCULATOR.xlsx. Edit when Brinks changes prices. Saved in this browser.</small></summary>
+    <summary>Rate card <small>from BRINKS CALCULATOR.xlsx. Edit when BRINKS changes prices. Saved in this browser.</small></summary>
     <div class="body">
       <div class="rates" id="rates"></div>
       <div class="actions"><button class="btn" id="resetRates">Reset to sheet values</button></div>
@@ -160,6 +198,20 @@
 <div class="view" id="view-ram"><div class="card"><div class="placeholder"><h4>RAM calculator not built yet</h4>The RAM Excel sheet still needs to be mapped. Point Claude at the file and it goes here.</div></div></div>
 <div class="view" id="view-mds"><div class="card"><div class="placeholder"><h4>MDS calculator not built yet</h4>No source sheet yet. Describe how MDS charges and it goes here.</div></div></div>
 
+<div class="overlay" id="overlay"><div class="wrap">
+  <div class="quote" id="quote">
+    <div class="qh">
+      <div class="brand"><div class="mark">SA</div><div><b>BRINKS delivery cost</b><span>SA Bullion · Inventory</span></div></div>
+      <div class="date" id="qDate"></div>
+    </div>
+    <div class="qb">
+      <div class="facts" id="qFacts"></div>
+      <table><thead><tr><th>Line</th><th>Excl VAT</th><th>VAT</th><th>Incl VAT</th></tr></thead><tbody id="qRows"></tbody></table>
+      <div class="qf" id="qFoot"></div>
+    </div>
+  </div>
+  <div class="qactions"><button class="btn" id="qClose">Close</button></div>
+</div></div>
 <div class="toast" id="toast">Copied</div>
 
 <script>
@@ -180,7 +232,8 @@
     liabilityPct: 'Liability / insurance rate (% of insured value)', adminFee: 'Admin fee (R)', upliftGold: 'Gold replacement uplift %',
     upliftSilver: 'Silver replacement uplift %', gramsPerOz: 'Grams per troy oz',
   };
-  const DEFAULT_INPUTS = { dest: 'JHB', qty: 140, price: 73300, unitG: 31.1035, uplift: '0', admin: true, surcharge: false, vatAll: false };
+  const DEFAULT_INPUTS = { dest: 'JHB', metal: 'gold', qty: 140, price: 73300, manualPrice: false, unitG: 31.1035, uplift: '0', admin: true, surcharge: false, vatAll: false };
+  const SYMBOL = { gold: 'XAU', silver: 'XAG', platinum: 'XPT' };   // api.gold-api.com symbols (USD per troy oz, free, no key)
 
   const $ = id => document.getElementById(id);
   const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? { ...d, ...JSON.parse(v) } : { ...d }; } catch { return { ...d }; } };
@@ -232,12 +285,14 @@
     return div;
   }
   function readInputs() {
-    inp = { dest: $('dest').value, qty: +$('qty').value || 0, price: +$('price').value || 0, unitG: +$('unitG').value || 0, uplift: $('uplift').value,
+    inp = { dest: $('dest').value, metal: $('metal').value, qty: +$('qty').value || 0, price: +$('price').value || 0, manualPrice: !!inp.manualPrice,
+            unitG: +$('unitG').value || 0, uplift: $('uplift').value,
             admin: $('admin').getAttribute('aria-checked') === 'true', surcharge: $('surcharge').getAttribute('aria-checked') === 'true', vatAll: $('vatAll').getAttribute('aria-checked') === 'true' };
     save('courier.brinks.inputs.v1', inp);
   }
   function writeInputs() {
     $('dest').value = inp.dest in rates.dest ? inp.dest : Object.keys(rates.dest)[0];
+    $('metal').value = inp.metal || 'gold';
     $('qty').value = inp.qty; $('price').value = inp.price; $('unitG').value = inp.unitG; $('uplift').value = inp.uplift;
     $('admin').setAttribute('aria-checked', inp.admin); $('surcharge').setAttribute('aria-checked', inp.surcharge); $('vatAll').setAttribute('aria-checked', inp.vatAll);
   }
@@ -250,8 +305,10 @@
     $('tEx').textContent = R(c.ex); $('tVat').textContent = R(c.vat); $('tInc').textContent = R(c.total);
     $('kPct').textContent = N(c.pct * 100, 4) + '%'; $('kUnit').textContent = R(c.perUnit);
     $('stamp').textContent = new Date().toLocaleDateString('en-ZA');
+    $('totalKg').textContent = N(c.totalKg, 3) + ' kg';
+    $('priceHint').textContent = inp.manualPrice ? 'typed in by hand' : 'live spot × unit weight';
     const notes = [];
-    if (c.excessKg > 0 && !inp.surcharge) notes.push(`<b>${c.excessKg} kg over the ${rates.standardKg} kg standard</b> but the surcharge is off. That matches the sheet for local runs. Switch it on if Brinks bills weight on this route.`);
+    if (c.excessKg > 0 && !inp.surcharge) notes.push(`<b>${c.excessKg} kg over the ${rates.standardKg} kg standard</b> but the surcharge is off. That matches the sheet for local runs. Switch it on if BRINKS bills weight on this route.`);
     if (!inp.vatAll) notes.push(`VAT is on the delivery line only, as in the sheet's "Summary of Cost". Switch <b>VAT on insurance &amp; admin</b> on to VAT every line (the sheet's other block does that).`);
     if (!rates.dest[inp.dest]) notes.push('No flat rate for this destination yet. Add it in the rate card.');
     $('note').innerHTML = notes.join('<br>'); $('note').style.display = notes.length ? '' : 'none';
@@ -262,10 +319,70 @@
     return `BRINKS courier fee – ${new Date().toLocaleDateString('en-ZA')}\nDestination: ${i.dest}\nUnits: ${i.qty} @ ${R(i.price)} = spot ${R(c.spot)} (insured ${R(c.insured)})\nWeight: ${N(c.totalKg)} kg (${c.excessKg} kg over ${rates.standardKg} kg)\n\n${l}\n${'Total excl VAT'.padEnd(24)} ${R(c.ex).padStart(14)}\n${'VAT'.padEnd(24)} ${R(c.vat).padStart(14)}\n${'TOTAL incl VAT'.padEnd(24)} ${R(c.total).padStart(14)}\nLogistics cost: ${N(c.pct * 100, 4)}% of spot`;
   }
 
+  // ---------- Live spot: USD/oz from api.gold-api.com, USD→ZAR from open.er-api.com (daily). Unit price = R/oz × unit weight in oz. ----------
+  let live = { usd: 0, zar: 0, at: null, err: '', metal: '' };
+  const oz = () => (inp.unitG || 0) / rates.gramsPerOz;
+  const livePerOz = () => live.usd * live.zar;
+  async function fetchLive() {
+    const metal = $('metal').value;
+    $('live').className = 'live'; $('live').textContent = 'Fetching live ' + metal + ' spot…';
+    try {
+      const [p, fx] = await Promise.all([
+        fetch('https://api.gold-api.com/price/' + SYMBOL[metal], { cache: 'no-store' }).then(r => r.json()),
+        fetch('https://open.er-api.com/v6/latest/USD').then(r => r.json()),
+      ]);
+      if (!p.price || !fx.rates?.ZAR) throw new Error('bad payload');
+      live = { usd: p.price, zar: fx.rates.ZAR, at: new Date(), err: '', metal };
+    } catch { live.err = 'Live spot unavailable. Type the price in by hand.'; }
+    applyLive();
+  }
+  function applyLive() {
+    readInputs();
+    if (!inp.manualPrice && livePerOz()) $('price').value = Math.round(livePerOz() * oz() * 100) / 100;
+    renderLive(); render();
+  }
+  function renderLive() {
+    const el = $('live');
+    if (live.err) { el.className = 'live err'; el.innerHTML = `${live.err} <a id="liveRetry">Retry</a>`; $('liveRetry').onclick = fetchLive; return; }
+    if (!live.at) return;
+    const t = live.at.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+    el.className = 'live';
+    el.innerHTML = `<span class="pill ${inp.manualPrice ? 'manual' : ''}">${inp.manualPrice ? 'MANUAL' : 'LIVE'}</span>` +
+      `${live.metal} $${N(live.usd)}/oz × R${N(live.zar, 4)} = <b>${R(livePerOz())}/oz</b> · ${t}` +
+      (inp.manualPrice ? ` · <a id="useLive">Use live price</a>` : ` · <a id="liveRefresh">Refresh</a>`);
+    if ($('useLive')) $('useLive').onclick = () => { inp.manualPrice = false; applyLive(); };
+    if ($('liveRefresh')) $('liveRefresh').onclick = fetchLive;
+  }
+
+  // ---------- Quote card (screenshot-ready) ----------
+  function fillQuote() {
+    const c = last, i = inp;
+    $('qDate').innerHTML = `<b>${new Date().toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' })}</b><br>${new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}`;
+    const metal = i.metal.charAt(0).toUpperCase() + i.metal.slice(1);
+    $('qFacts').innerHTML = [
+      ['Destination', i.dest], ['Shipment', `${i.qty} × ${metal} ${N(i.unitG, i.unitG % 1 ? 4 : 0)} g`],
+      ['Total weight', N(c.totalKg, 2) + ' kg'], ['Unit price', R(i.price) + (i.manualPrice ? '' : ' (live)')],
+      ['Spot value', R(c.spot)], ['Insured value', R(c.insured)],
+      ['Liability rate', N(rates.liabilityPct, 3) + '%'], ['Logistics cost', N(c.pct * 100, 4) + '% of spot'],
+    ].map(([k, v]) => `<div class="fact"><span>${k}</span><b>${v}</b></div>`).join('');
+    $('qRows').innerHTML = c.lines.filter(l => l.on).map(l => `<tr><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td>${R(l.vat)}</td><td>${R(l.ex + l.vat)}</td></tr>`).join('') +
+      `<tr><td>Subtotal</td><td>${R(c.ex)}</td><td>${R(c.vat)}</td><td>${R(c.total)}</td></tr>` +
+      `<tr class="grand"><td>Total delivery charge<small>incl. VAT</small></td><td></td><td></td><td>${R(c.total)}</td></tr>`;
+    $('qFoot').innerHTML = `<div>Cost per unit <b>${R(c.perUnit)}</b></div><div>${i.surcharge ? 'Weight surcharge applied' : 'No weight surcharge (local run)'} · ${i.vatAll ? 'VAT on all lines' : 'VAT on delivery only'}</div><div>Rates: BRINKS CALCULATOR.xlsx</div>`;
+  }
+  $('quoteBtn').onclick = () => { fillQuote(); $('overlay').classList.add('on'); };
+  $('qClose').onclick = () => $('overlay').classList.remove('on');
+  $('overlay').onclick = e => { if (e.target === $('overlay')) $('overlay').classList.remove('on'); };
+
   buildDest(); buildRates(); writeInputs(); render();
-  for (const id of ['dest', 'qty', 'price', 'unitG', 'uplift']) $(id).addEventListener('input', render);
+  for (const id of ['dest', 'qty', 'uplift']) $(id).addEventListener('input', render);
+  $('unitG').addEventListener('input', applyLive);                      // unit weight changes the live unit price
+  $('metal').addEventListener('change', fetchLive);
+  $('price').addEventListener('input', () => { inp.manualPrice = true; renderLive(); render(); });
   for (const id of ['admin', 'surcharge', 'vatAll']) $(id).onclick = e => { e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
-  $('reset').onclick = () => { inp = { ...DEFAULT_INPUTS }; writeInputs(); render(); };
+  $('reset').onclick = () => { inp = { ...DEFAULT_INPUTS }; writeInputs(); applyLive(); };
+  fetchLive().then(() => { if (new URLSearchParams(location.search).has('quote')) $('quoteBtn').click(); });   // ?quote opens the card (previews)
+  setInterval(fetchLive, 5 * 60 * 1000);                                  // refresh every 5 minutes while the page is open
   $('resetRates').onclick = () => { rates = JSON.parse(JSON.stringify(DEFAULT_RATES)); save('courier.brinks.rates.v1', rates); buildDest(); buildRates(); writeInputs(); render(); };
   $('copy').onclick = async () => { try { await navigator.clipboard.writeText(summaryText()); toast('Summary copied'); } catch { toast('Copy blocked by browser'); } };
   function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }

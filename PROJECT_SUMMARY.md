@@ -62,6 +62,12 @@ numbers (140 KR @ R73,300 to JHB = R8,150.76, the sheet's TOTAL):
 - "VAT on insurance & admin too" toggle: OFF reproduces the sheet's Summary of Cost (VAT on delivery
   only); ON reproduces its side block F26 (VAT on everything). **Open question for Abdullah: which
   one matches the real Brinks invoice?**
+**Live spot (added same day):** unit price = live metal price per oz × unit weight in oz. Gold/silver/
+platinum USD per oz from `api.gold-api.com` (free, no key, CORS open) × USD→ZAR from `open.er-api.com`
+(free, updates daily). Refreshes every 5 minutes; typing in the price switches to MANUAL with a
+"Use live price" link back. If either endpoint dies, the page says so and the price stays editable.
+**Quote card** button opens a white, screenshot-ready breakdown (facts grid + line table + big total);
+`?quote` in the URL opens it on load for previews.
 Rate card is editable in the page and saved per browser (`localStorage courier.brinks.rates.v1`),
 "Reset to sheet values" restores the defaults. Test harness: a Node script that extracts `calc()`
 from the page and checks 11 sheet cells (lived in the session scratchpad; re-create from the cell
