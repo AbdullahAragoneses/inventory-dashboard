@@ -82,7 +82,9 @@
   .frame-wrap .fr { flex: 1; position: relative; min-height: 0; }
 
   .home { position: absolute; inset: 0; overflow: auto; padding: 0 40px 40px; outline: none; }
-  .hero { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 2.6fr); gap: 24px; margin: 24px 0; }
+  .hero { display: grid; grid-template-columns: 1fr; gap: 24px; margin: 24px 0; }
+  .spot { grid-template-columns: repeat(2, minmax(0, 320px)); gap: 48px; }
+  .dark { min-height: 0; }
   .dark { background: var(--dark-card); border-radius: 16px; padding: 20px 24px; color: #fff; min-height: 236px; display: flex; flex-direction: column; box-shadow: var(--shadow-card); }
   .live-h { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #F8FAFC; }
   .live-h .r { font-weight: 500; text-transform: none; letter-spacing: 0; color: #94A3B8; font-size: 13px; display: flex; align-items: center; gap: 8px; }
@@ -90,7 +92,7 @@
   .clock { font-size: 46px; font-weight: 800; letter-spacing: .06em; margin: auto 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 24px rgba(11,221,178,.35); }
   .live-f { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; margin-top: 12px; font-size: 13px; color: #94A3B8; }
   .chip { display: inline-block; padding: 4px 9px; border-radius: 6px; font-size: 12px; font-weight: 700; letter-spacing: .02em; color: #34D399; background: rgba(16,185,129,.16); }
-  .spot { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: auto 0; padding: 12px 0; }
+  .spot { display: grid; grid-template-columns: repeat(2, minmax(0, 320px)); gap: 48px; margin: auto 0; padding: 16px 0 4px; }
   .spot .m { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #F1F5F9; }
   .spot .m span { font-size: 11px; font-weight: 500; color: #94A3B8; margin-left: auto; }
   .badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; letter-spacing: .04em; }
@@ -151,19 +153,12 @@
         <div class="titlebar" style="padding-left:0;padding-right:0"><h1>Welcome back, Abdullah Aragoneses!</h1><p>Your inventory tools, in one view. Proof coins, stock takes, shipping paperwork and courier costs.</p></div>
         <div class="hero">
           <div class="dark">
-            <div class="live-h"><span><i class="dot"></i>Live SAST time</span><span class="r" id="clockDate"></span></div>
-            <div class="clock" id="clock">--:--:--</div>
-            <div class="live-f"><span>South Africa (UTC+2)</span><span class="chip" id="tradingChip">Trading Active</span></div>
-          </div>
-          <div class="dark">
-            <div class="live-h"><span><i class="dot"></i>Live spot bullion (ZAR)</span><span class="r"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="countdown">Updates soon</span><a id="spotRefresh" title="Refresh" style="cursor:pointer;color:#94A3B8;display:grid"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></a></span></div>
+            <div class="live-h"><span><i class="dot"></i>Live spot bullion (ZAR)</span><span class="r"><span id="clockDate"></span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="countdown">Updates soon</span><a id="spotRefresh" title="Refresh" style="cursor:pointer;color:#94A3B8;display:grid"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></a></span></div>
             <div class="spot" id="spot">
               <div><div class="m"><span class="badge au">AU</span>Gold<span>1 oz</span></div><div class="p" id="pGold">–</div><div class="s" id="sGold"></div></div>
               <div><div class="m"><span class="badge ag">AG</span>Silver<span>1 oz</span></div><div class="p" id="pSilver">–</div><div class="s" id="sSilver"></div></div>
-              <div><div class="m"><span class="badge pt">PT</span>Platinum<span>1 oz</span></div><div class="p" id="pPlat">–</div><div class="s" id="sPlat"></div></div>
-              <div><div class="m"><span class="badge fx">FX</span>USD / ZAR<span>Spot FX</span></div><div class="p" id="pFx">–</div><div class="s" id="sFx"></div></div>
             </div>
-            <div class="live-f"><span>Spot quotes per troy ounce · gold-api.com × open.er-api.com</span><span style="color:#34D399;font-weight:600"><i class="dot" style="margin-right:6px"></i>Real-time feed</span></div>
+            <div class="live-f"><span>Spot quotes per troy ounce · USD spot from gold-api.com × daily USD/ZAR from open.er-api.com (<span id="sFx"></span>)</span><span style="color:#34D399;font-weight:600"><i class="dot" style="margin-right:6px"></i>Real-time feed</span></div>
           </div>
         </div>
         <div class="section-h">Tools</div>
@@ -172,7 +167,7 @@
           <h3>How this works</h3>
           <div class="row"><span class="tile" style="background:var(--info-tint);color:var(--info)"><span class="ic" style="--icon:url(assets/icons/ic-external.svg)"></span></span><div class="t"><b>One window, every tool</b><span>Pick a tool on the left. It runs live inside this page, exactly as at its own link.</span></div></div>
           <div class="row"><span class="tile" style="background:var(--success-tint);color:var(--success-dark)"><span class="ic" style="--icon:url(assets/icons/ic-user.svg)"></span></span><div class="t"><b>Your own logins still apply</b><span>Each tool keeps its own account and permissions. Log in once and it remembers you.</span></div></div>
-          <div class="row"><span class="tile" style="background:var(--warning-tint);color:var(--warning-darker)"><span class="ic" style="--icon:url(assets/icons/ic-analytics.svg)"></span></span><div class="t"><b>Live spot above</b><span>Gold, silver and platinum per ounce in Rand, refreshed every five minutes. The courier calculator uses the same feed.</span></div></div>
+          <div class="row"><span class="tile" style="background:var(--warning-tint);color:var(--warning-darker)"><span class="ic" style="--icon:url(assets/icons/ic-analytics.svg)"></span></span><div class="t"><b>Live spot above</b><span>Gold and silver per ounce in Rand, refreshed every five minutes. The courier calculator uses the same feed.</span></div></div>
         </div>
       </div>
       <div class="frame-wrap" id="frameWrap" hidden>
@@ -241,13 +236,10 @@
   function save(k, v) { try { localStorage.setItem(k, v); } catch {} }
   function load(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }
 
-  // ---------- Live clock ----------
+  // ---------- Countdown to the next spot refresh ----------
   function tick() {
     const d = new Date();
-    $('clock').textContent = d.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
     $('clockDate').textContent = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-    const h = d.getHours(), wd = d.getDay();
-    $('tradingChip').textContent = wd >= 1 && wd <= 5 && h >= 8 && h < 17 ? 'Trading Active' : 'After hours';
     const left = Math.max(0, Math.round((nextSpot - d) / 1000));
     $('countdown').textContent = 'Updates in ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
   }
@@ -258,14 +250,13 @@
   async function fetchSpot() {
     const t = new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
     try {
-      const [au, ag, pt, fx] = await Promise.all(['XAU', 'XAG', 'XPT'].map(s => fetch('https://api.gold-api.com/price/' + s, { cache: 'no-store' }).then(r => r.json())).concat(fetch('https://open.er-api.com/v6/latest/USD').then(r => r.json())));
+      const [au, ag, fx] = await Promise.all(['XAU', 'XAG'].map(s => fetch('https://api.gold-api.com/price/' + s, { cache: 'no-store' }).then(r => r.json())).concat(fetch('https://open.er-api.com/v6/latest/USD').then(r => r.json())));
       const zar = fx.rates.ZAR;
-      $('pGold').textContent = rand(au.price * zar);   $('sGold').textContent = '$' + au.price.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' · ' + t;
-      $('pSilver').textContent = rand(ag.price * zar); $('sSilver').textContent = '$' + ag.price.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' · ' + t;
-      $('pPlat').textContent = rand(pt.price * zar);   $('sPlat').textContent = '$' + pt.price.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' · ' + t;
-      $('pFx').textContent = 'R ' + zar.toFixed(2);     $('sFx').textContent = 'daily rate · ' + fx.time_last_update_utc.slice(5, 16);
-      for (const id of ['sGold', 'sSilver', 'sPlat', 'sFx']) $(id).classList.remove('err');
-    } catch { for (const id of ['sGold', 'sSilver', 'sPlat', 'sFx']) { $(id).textContent = 'feed unavailable'; $(id).classList.add('err'); } }
+      $('pGold').textContent = rand(au.price * zar);   $('sGold').textContent = '$' + au.price.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' × R' + zar.toFixed(2) + ' · ' + t;
+      $('pSilver').textContent = rand(ag.price * zar); $('sSilver').textContent = '$' + ag.price.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' × R' + zar.toFixed(2) + ' · ' + t;
+      $('sFx').textContent = 'R ' + zar.toFixed(4) + ', ' + fx.time_last_update_utc.slice(5, 16);
+      for (const id of ['sGold', 'sSilver']) $(id).classList.remove('err');
+    } catch { for (const id of ['sGold', 'sSilver']) { $(id).textContent = 'feed unavailable'; $(id).classList.add('err'); } }
     nextSpot = new Date(Date.now() + SPOT_MS);
   }
   $('spotRefresh').onclick = fetchSpot;
