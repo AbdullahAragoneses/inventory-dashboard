@@ -215,6 +215,7 @@
     coins:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>',
     clipboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>',
     file:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    truck:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>',
     arrow:     '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>',
   };
 
@@ -224,9 +225,11 @@
     { id: 'proof', icon: 'coins',     label: 'Proof Coins', tint: 'blue',   url: 'https://proof-dashboard-eight.vercel.app/',          blurb: 'Capture proof coins, attach photos, and feed the public catalogue.' },
     { id: 'stock', icon: 'clipboard', label: 'Stock Take',  tint: 'green',  url: 'https://stock-take-dashboard-seven.vercel.app/',           blurb: 'Vault stock takes with counted-vs-expected checks. Replaces the paper count.' },
     { id: 'sli',   icon: 'file',      label: 'SLI',         tint: 'purple', url: 'https://abdullaharagoneses.github.io/sli-generator/', blurb: 'Shipper’s Letter of Instruction generator with a shared invoice counter.' },
+    { id: 'courier', icon: 'truck',   label: 'Courier Fees', tint: 'orange', url: 'courier/',                                          blurb: 'Brinks, RAM and MDS delivery cost calculators. Brinks is live; the others follow.' },
   ];
   const LOCAL = { proof: 'http://127.0.0.1:8789/', stock: 'http://127.0.0.1:8000/', sli: 'http://127.0.0.1:8788/' };
   if (location.search.includes('local')) for (const a of APPS) if (LOCAL[a.id]) a.url = LOCAL[a.id];
+  for (const a of APPS) if (a.url) a.url = new URL(a.url, location.href).href;   // relative pages (courier/) live in this repo
 
   const $ = id => document.getElementById(id);
   const sidebar = $('sidebar'), options = $('options'), grid = $('grid'), frame = $('frame'), home = $('home');

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Courier Fees</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Same tokens as the Inventory Dashboard shell so it reads as one product. */
+  :root {
+    --bg: #FFFFFF; --panel: #FFFFFF; --panel-2: #F9FAFB; --border: #E5E7EB; --border-2: #D1D5DB;
+    --text: #111827; --text-2: #4B5563; --text-3: #6B7280; --hover: #F9FAFB;
+    --active-bg: #E8F1F6; --active-text: #16587B; --accent: #16587B; --accent-2: #124A68; --accent-soft: #84B3CE;
+    --ok: #16A34A; --warn: #EA580C; --warn-bg: #FFF7ED;
+    --shadow: 0 1px 2px rgba(0,0,0,.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #111827; --panel: #111827; --panel-2: #1F2937; --border: #1F2937; --border-2: #374151;
+    --text: #F3F4F6; --text-2: #9CA3AF; --text-3: #6B7280; --hover: #1F2937;
+    --active-bg: rgba(22,88,123,.35); --active-text: #84B3CE; --accent: #16587B; --accent-2: #124A68; --accent-soft: #84B3CE;
+    --ok: #4ADE80; --warn: #FB923C; --warn-bg: rgba(124,45,18,.2);
+    --shadow: 0 1px 2px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+  body { padding: 20px 24px 32px; }
+  button, input, select { font: inherit; color: inherit; }
+
+  /* Courier tabs */
+  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab { border: none; background: transparent; padding: 10px 16px; cursor: pointer; color: var(--text-2); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab:hover { color: var(--text); }
+  .tab.on { color: var(--active-text); border-bottom-color: var(--accent); }
+  .tab .soon { font-size: 11px; color: var(--text-3); margin-left: 6px; font-weight: 400; }
+  .view { display: none; } .view.on { display: block; }
+
+  .cols { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+
+  .card { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); box-shadow: var(--shadow); }
+  .card > h3 { font-size: 15px; font-weight: 600; padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card > h3 small { font-size: 12px; font-weight: 400; color: var(--text-3); }
+  .body { padding: 14px 18px 18px; }
+
+  .field { display: grid; grid-template-columns: 1fr 150px; align-items: center; gap: 12px; padding: 7px 0; }
+  .field label { color: var(--text-2); }
+  .field label small { display: block; font-size: 11px; color: var(--text-3); }
+  .field input, .field select { width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-2); border-radius: 8px; background: var(--panel); text-align: right; }
+  .field select { text-align: left; }
+  .field input:focus, .field select:focus { outline: 2px solid var(--accent-soft); outline-offset: 0; border-color: var(--accent); }
+  .field.chk { grid-template-columns: 1fr auto; }
+  .switch { position: relative; width: 40px; height: 22px; border-radius: 11px; background: var(--border-2); border: none; cursor: pointer; transition: background .15s; }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .15s; }
+  .switch[aria-checked="true"] { background: var(--accent); } .switch[aria-checked="true"]::after { left: 21px; }
+  .prefix { position: relative; } .prefix::before { content: 'R'; position: absolute; left: 10px; top: 8px; color: var(--text-3); }
+  .prefix input { padding-left: 24px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 9px 8px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+  th:first-child, td:first-child { text-align: left; }
+  td:first-child small { display: block; font-size: 11px; color: var(--text-3); white-space: normal; }
+  tr.total td { font-weight: 700; font-size: 15px; border-top: 2px solid var(--border-2); border-bottom: none; }
+  tr.total td:last-child { color: var(--active-text); }
+  td.muted { color: var(--text-3); }
+  tr.off td { color: var(--text-3); text-decoration: line-through; }
+  tr.off td:first-child { text-decoration: none; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-2); }
+  .kpi span { display: block; font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .kpi b { font-size: 16px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+
+  .note { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--text-2); font-size: 12px; line-height: 1.5; border-left: 3px solid var(--warn); }
+  .note b { color: var(--text); }
+
+  .actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .btn { height: 34px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--border-2); background: var(--panel); cursor: pointer; font-weight: 500; }
+  .btn:hover { background: var(--hover); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; } .btn.primary:hover { background: var(--accent-2); }
+
+  details.card summary { list-style: none; cursor: pointer; font-size: 15px; font-weight: 600; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  details.card summary::-webkit-details-marker { display: none; }
+  details.card summary small { font-size: 12px; font-weight: 400; color: var(--text-3); }
+  details.card[open] summary { border-bottom: 1px solid var(--border); }
+  .rates { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px 24px; }
+  .placeholder { padding: 40px 24px; text-align: center; color: var(--text-2); }
+  .placeholder h4 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="tabs" id="tabs">
+  <button class="tab on" data-view="brinks">Brinks</button>
+  <button class="tab" data-view="ram">RAM <span class="soon">coming</span></button>
+  <button class="tab" data-view="mds">MDS <span class="soon">coming</span></button>
+</div>
+
+<!-- ================= BRINKS ================= -->
+<div class="view on" id="view-brinks">
+  <div class="cols">
+    <div>
+      <div class="card">
+        <h3>Shipment <small>what is moving</small></h3>
+        <div class="body">
+          <div class="field"><label>Destination</label><select id="dest"></select></div>
+          <div class="field"><label>Units <small>coins / bars (oz for Krugerrands)</small></label><input id="qty" type="number" min="0" step="1"></div>
+          <div class="field"><label>Unit price <small>current price per unit</small></label><div class="prefix"><input id="price" type="number" min="0" step="1"></div></div>
+          <div class="field"><label>Weight per unit <small>grams. 31.1035 = 1 oz, 1000 = 1 kg bar</small></label><input id="unitG" type="number" min="0" step="0.0001"></div>
+          <div class="field"><label>Insure at <small>replacement uplift on top of spot</small></label>
+            <select id="uplift"><option value="0">Spot value</option><option value="gold">Gold +4.5%</option><option value="silver">Silver +8%</option></select></div>
+          <div class="field chk"><label>Admin fee <small>only if Brinks opens / tampers with the package</small></label><button class="switch" id="admin" role="switch" aria-checked="true"></button></div>
+          <div class="field chk"><label>Weight surcharge over 4 kg <small>not applied on local runs</small></label><button class="switch" id="surcharge" role="switch" aria-checked="false"></button></div>
+          <div class="field chk"><label>VAT on insurance &amp; admin too <small>off = VAT on delivery only (sheet total)</small></label><button class="switch" id="vatAll" role="switch" aria-checked="false"></button></div>
+          <div class="actions"><button class="btn" id="reset">Reset inputs</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Cost breakdown <small id="stamp"></small></h3>
+        <div class="body">
+          <div class="kpis">
+            <div class="kpi"><span>Spot value</span><b id="kSpot">–</b></div>
+            <div class="kpi"><span>Insured value</span><b id="kInsured">–</b></div>
+            <div class="kpi"><span>Total weight</span><b id="kKg">–</b></div>
+            <div class="kpi"><span>Excess over 4 kg</span><b id="kExcess">–</b></div>
+          </div>
+          <table>
+            <thead><tr><th>Line</th><th>Excl VAT</th><th>VAT</th><th>Incl VAT</th></tr></thead>
+            <tbody id="rows"></tbody>
+            <tfoot><tr class="total"><td>Total delivery charge</td><td id="tEx"></td><td id="tVat"></td><td id="tInc"></td></tr></tfoot>
+          </table>
+          <div class="kpis" style="margin-top:16px;margin-bottom:0">
+            <div class="kpi"><span>Logistics cost</span><b id="kPct">–</b><span style="margin:4px 0 0;text-transform:none;letter-spacing:0">of spot value</span></div>
+            <div class="kpi"><span>Cost per unit</span><b id="kUnit">–</b></div>
+          </div>
+          <div class="note" id="note"></div>
+          <div class="actions"><button class="btn primary" id="copy">Copy summary</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details class="card" style="margin-top:20px">
+    <summary>Rate card <small>from BRINKS CALCULATOR.xlsx. Edit when Brinks changes prices. Saved in this browser.</small></summary>
+    <div class="body">
+      <div class="rates" id="rates"></div>
+      <div class="actions"><button class="btn" id="resetRates">Reset to sheet values</button></div>
+    </div>
+  </details>
+</div>
+
+<!-- ================= RAM / MDS ================= -->
+<div class="view" id="view-ram"><div class="card"><div class="placeholder"><h4>RAM calculator not built yet</h4>The RAM Excel sheet still needs to be mapped. Point Claude at the file and it goes here.</div></div></div>
+<div class="view" id="view-mds"><div class="card"><div class="placeholder"><h4>MDS calculator not built yet</h4>No source sheet yet. Describe how MDS charges and it goes here.</div></div></div>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+  // ---------- Rate card: every number comes from BRINKS CALCULATOR.xlsx, tab "BRINKS CALCULATOR" (cell refs in comments). ----------
+  const DEFAULT_RATES = {
+    vatPct: 15,                                    // C3 = B3*15/100
+    dest: { 'JHB': 2500, 'PRETORIA': 2500, 'CPT (Consolidated)': 5375, 'CPT Not Consolidated': 7500 },  // B3:B6, excl VAT
+    surchargePerKg: 39.95,                         // F3, excl VAT, per kg over the standard weight
+    standardKg: 4,                                 // B24
+    liabilityPct: 0.048,                           // A9, % of insured value
+    adminFee: 350,                                 // B35 / F23
+    upliftGold: 4.5,                               // E32 "Replacement cost 4.50% (Gold)"
+    upliftSilver: 8,                               // E34 "Replacement cost 8.00% (Silver)"
+    gramsPerOz: 31.1035,                           // B12
+  };
+  const RATE_LABELS = {
+    vatPct: 'VAT %', surchargePerKg: 'Surcharge per kg over standard (R, excl VAT)', standardKg: 'Standard weight (kg)',
+    liabilityPct: 'Liability / insurance rate (% of insured value)', adminFee: 'Admin fee (R)', upliftGold: 'Gold replacement uplift %',
+    upliftSilver: 'Silver replacement uplift %', gramsPerOz: 'Grams per troy oz',
+  };
+  const DEFAULT_INPUTS = { dest: 'JHB', qty: 140, price: 73300, unitG: 31.1035, uplift: '0', admin: true, surcharge: false, vatAll: false };
+
+  const $ = id => document.getElementById(id);
+  const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? { ...d, ...JSON.parse(v) } : { ...d }; } catch { return { ...d }; } };
+  const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  let rates = load('courier.brinks.rates.v1', DEFAULT_RATES);
+  let inp = load('courier.brinks.inputs.v1', DEFAULT_INPUTS);
+  rates.dest = { ...DEFAULT_RATES.dest, ...(rates.dest || {}) };
+
+  const R = n => 'R ' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const N = (n, d = 2) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+  // ---------- The calculation (mirrors A11:B37 of the sheet, plus its two optional blocks) ----------
+  function calc(i, r) {
+    const spot = i.qty * i.price;                                                   // B20 = B19*B18
+    const upliftPct = i.uplift === 'gold' ? r.upliftGold : i.uplift === 'silver' ? r.upliftSilver : 0;
+    const insured = spot * (1 + upliftPct / 100);                                   // F17 = B20 + B20*4.5%
+    const insurance = insured * r.liabilityPct / 100;                               // B21 = B20*A9/100
+    const totalKg = i.qty * i.unitG / 1000;                                         // B16
+    const excessKg = Math.max(0, Math.ceil(Math.round((totalKg - r.standardKg) * 1e6) / 1e6)); // B26 = ROUNDUP(B23-B24,0), floored at 0 (C28 note)
+    const delivery = r.dest[i.dest] ?? 0;                                           // B27 = flat rate for destination
+    const surcharge = i.surcharge ? excessKg * r.surchargePerKg : 0;                // B28 = B26*H5 (H5 is incl VAT; here excl, VAT added below)
+    const admin = i.admin ? r.adminFee : 0;                                         // B35
+    const v = r.vatPct / 100;
+    const lines = [
+      { key: 'delivery',  label: 'Delivery',              sub: i.dest + ' flat rate',                                   ex: delivery,  vat: delivery * v, on: true },
+      { key: 'surcharge', label: 'Weight surcharge',      sub: excessKg + ' kg over ' + r.standardKg + ' kg × ' + R(r.surchargePerKg), ex: surcharge, vat: surcharge * v, on: i.surcharge },
+      { key: 'insurance', label: 'Insurance / liability', sub: N(r.liabilityPct, 3) + '% of ' + R(insured),           ex: insurance, vat: i.vatAll ? insurance * v : 0, on: true },
+      { key: 'admin',     label: 'Admin fee',             sub: i.admin ? 'package opened / tampered' : 'not charged',   ex: admin,     vat: i.vatAll ? admin * v : 0, on: i.admin },
+    ];
+    const ex = lines.reduce((s, l) => s + l.ex, 0), vat = lines.reduce((s, l) => s + l.vat, 0);
+    return { spot, insured, totalKg, excessKg, lines, ex, vat, total: ex + vat, pct: spot ? (ex + vat) / spot : 0, perUnit: i.qty ? (ex + vat) / i.qty : 0 };
+  }
+
+  // ---------- UI ----------
+  function buildDest() { $('dest').innerHTML = Object.keys(rates.dest).map(d => `<option>${d}</option>`).join(''); }
+  function buildRates() {
+    const box = $('rates'); box.innerHTML = '';
+    for (const [d, val] of Object.entries(rates.dest)) box.appendChild(rateField('dest.' + d, d + ' flat rate (R, excl VAT)', val));
+    for (const k of Object.keys(RATE_LABELS)) box.appendChild(rateField(k, RATE_LABELS[k], rates[k]));
+  }
+  function rateField(key, label, val) {
+    const div = document.createElement('div'); div.className = 'field';
+    div.innerHTML = `<label>${label}</label><input type="number" step="any" value="${val}" data-rate="${key}">`;
+    div.querySelector('input').oninput = e => {
+      const n = parseFloat(e.target.value); if (isNaN(n)) return;
+      if (key.startsWith('dest.')) rates.dest[key.slice(5)] = n; else rates[key] = n;
+      save('courier.brinks.rates.v1', rates); render();
+    };
+    return div;
+  }
+  function readInputs() {
+    inp = { dest: $('dest').value, qty: +$('qty').value || 0, price: +$('price').value || 0, unitG: +$('unitG').value || 0, uplift: $('uplift').value,
+            admin: $('admin').getAttribute('aria-checked') === 'true', surcharge: $('surcharge').getAttribute('aria-checked') === 'true', vatAll: $('vatAll').getAttribute('aria-checked') === 'true' };
+    save('courier.brinks.inputs.v1', inp);
+  }
+  function writeInputs() {
+    $('dest').value = inp.dest in rates.dest ? inp.dest : Object.keys(rates.dest)[0];
+    $('qty').value = inp.qty; $('price').value = inp.price; $('unitG').value = inp.unitG; $('uplift').value = inp.uplift;
+    $('admin').setAttribute('aria-checked', inp.admin); $('surcharge').setAttribute('aria-checked', inp.surcharge); $('vatAll').setAttribute('aria-checked', inp.vatAll);
+  }
+  let last;
+  function render() {
+    readInputs(); const c = last = calc(inp, rates);
+    $('kSpot').textContent = R(c.spot); $('kInsured').textContent = R(c.insured);
+    $('kKg').textContent = N(c.totalKg, 2) + ' kg'; $('kExcess').textContent = c.excessKg + ' kg';
+    $('rows').innerHTML = c.lines.map(l => `<tr class="${l.on ? '' : 'off'}"><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td class="${l.vat ? '' : 'muted'}">${R(l.vat)}</td><td>${R(l.ex + l.vat)}</td></tr>`).join('');
+    $('tEx').textContent = R(c.ex); $('tVat').textContent = R(c.vat); $('tInc').textContent = R(c.total);
+    $('kPct').textContent = N(c.pct * 100, 4) + '%'; $('kUnit').textContent = R(c.perUnit);
+    $('stamp').textContent = new Date().toLocaleDateString('en-ZA');
+    const notes = [];
+    if (c.excessKg > 0 && !inp.surcharge) notes.push(`<b>${c.excessKg} kg over the ${rates.standardKg} kg standard</b> but the surcharge is off. That matches the sheet for local runs. Switch it on if Brinks bills weight on this route.`);
+    if (!inp.vatAll) notes.push(`VAT is on the delivery line only, as in the sheet's "Summary of Cost". Switch <b>VAT on insurance &amp; admin</b> on to VAT every line (the sheet's other block does that).`);
+    if (!rates.dest[inp.dest]) notes.push('No flat rate for this destination yet. Add it in the rate card.');
+    $('note').innerHTML = notes.join('<br>'); $('note').style.display = notes.length ? '' : 'none';
+  }
+  function summaryText() {
+    const c = last, i = inp;
+    const l = c.lines.filter(x => x.on).map(x => `${x.label.padEnd(24)} ${R(x.ex + x.vat).padStart(14)}`).join('\n');
+    return `BRINKS courier fee – ${new Date().toLocaleDateString('en-ZA')}\nDestination: ${i.dest}\nUnits: ${i.qty} @ ${R(i.price)} = spot ${R(c.spot)} (insured ${R(c.insured)})\nWeight: ${N(c.totalKg)} kg (${c.excessKg} kg over ${rates.standardKg} kg)\n\n${l}\n${'Total excl VAT'.padEnd(24)} ${R(c.ex).padStart(14)}\n${'VAT'.padEnd(24)} ${R(c.vat).padStart(14)}\n${'TOTAL incl VAT'.padEnd(24)} ${R(c.total).padStart(14)}\nLogistics cost: ${N(c.pct * 100, 4)}% of spot`;
+  }
+
+  buildDest(); buildRates(); writeInputs(); render();
+  for (const id of ['dest', 'qty', 'price', 'unitG', 'uplift']) $(id).addEventListener('input', render);
+  for (const id of ['admin', 'surcharge', 'vatAll']) $(id).onclick = e => { e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
+  $('reset').onclick = () => { inp = { ...DEFAULT_INPUTS }; writeInputs(); render(); };
+  $('resetRates').onclick = () => { rates = JSON.parse(JSON.stringify(DEFAULT_RATES)); save('courier.brinks.rates.v1', rates); buildDest(); buildRates(); writeInputs(); render(); };
+  $('copy').onclick = async () => { try { await navigator.clipboard.writeText(summaryText()); toast('Summary copied'); } catch { toast('Copy blocked by browser'); } };
+  function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }
+
+  // Courier tabs
+  document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === 'view-' + t.dataset.view));
+    try { localStorage.setItem('courier.tab', t.dataset.view); } catch {}
+  });
+  try { const t = localStorage.getItem('courier.tab'); if (t) document.querySelector(`.tab[data-view="${t}"]`)?.click(); } catch {}
+
+  // Theme: follow the dashboard shell (postMessage), ?theme=, or the shell's saved choice when opened standalone.
+  const setTheme = t => document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light';
+  window.addEventListener('message', e => { if (e.data && e.data.type === 'invdash-theme') setTheme(e.data.theme); });
+  const forced = new URLSearchParams(location.search).get('theme');
+  setTheme(forced || (() => { try { return localStorage.getItem('invdash2.theme'); } catch { return 'light'; } })());
+  window.CourierCalc = { calc, DEFAULT_RATES, DEFAULT_INPUTS };   // exposed for tests
+</script>
+</body>
+</html>
