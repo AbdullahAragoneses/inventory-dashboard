@@ -22,12 +22,23 @@ Pages redeploys in about a minute.
 `http://localhost:8787/?local` — `?local` swaps the app URLs to localhost dev servers
 (Proof 8789 static, SLI 8788 static, Stock Take 8000 uvicorn). `&theme=dark` forces a theme.
 
-## Design
-Second reference Abdullah supplied (light sidebar, grey line borders, few colours), recoloured
-with his brand blues: **Venice Blue #16587B** primary, **Rock Blue #84B3CE** lighter companion,
-Tailwind grey scale for everything else. Both modes. The three apps share the exact same tokens
-(their `:root` / `[data-theme="light"]` blocks were rewritten 2026-09-11) so the whole window
-reads as one product.
+## Design (since 2026-09-25: Solstice look)
+Abdullah asked for the hub to look like Solstice (solstice.goldstore.co.za). Tokens were captured
+live from the logged-in Solstice dashboard via Chrome DevTools: it is the **Minimal UI** design
+system. Font **Public Sans**; text #1C252E / #637381 / #919EAB; grey scale 100 #F9FAFB → 900
+#141A21; primary = dark #1C252E / #141A21 (nav active = #141A21 with white text, radius 8, or
+`0 15px 15px 0` in the 88 px mini rail); success #0BDDB2 / #099E7F; warning #FF9E01; info #00A8D5;
+secondary #8032FD; cards radius 16, no border, shadow `0 0 2px rgba(145,158,171,.2), 0 12px 24px
+-4px rgba(145,158,171,.12)`; dark hero cards `linear-gradient(135deg,#0B0F19,#111827 50%,#0D1322)`.
+Sidebar 300 px expanded with a 68 px black logo strip (Solstice logo `assets/logo.svg`), round
+chevron toggle on the edge, green-ringed avatar bottom-left. Nav icons are the Solstice navbar set
+(`assets/icons/ic-*.svg`, used as CSS masks so they take the text colour). Dark mode uses the
+Minimal dark palette (#141A21 / #1C252E / #919EAB). Home page mirrors Solstice's hero: a LIVE SAST
+TIME clock card and a LIVE SPOT BULLION (ZAR) card fed by the same free APIs as the courier page.
+
+**The three embedded apps still wear the older grey + Venice Blue theme** (rewritten 2026-09-11);
+re-theming them to Public Sans + Minimal tokens is the next step if Abdullah wants one look inside
+the frames too.
 
 ## Where the apps live (2026-09-11)
 | Tool | Live URL | Hosting |
@@ -62,7 +73,14 @@ numbers (140 KR @ R73,300 to JHB = R8,150.76, the sheet's TOTAL):
 - "VAT on insurance & admin too" toggle: OFF reproduces the sheet's Summary of Cost (VAT on delivery
   only); ON reproduces its side block F26 (VAT on everything). **Open question for Abdullah: which
   one matches the real Brinks invoice?**
-**Live spot (added same day):** unit price = live metal price per oz × unit weight in oz. Gold/silver/
+**Multi-line shipments (same day, Abdullah's ask):** a shipment is a list of lines, each Metal ×
+Size (1 oz, 1/2, 1/4, 1/10 oz, 1 kg bar, 100 g bar, custom grams) × Units × Unit price, so gold and
+silver travel in one quote. Spot value, insured value (per-metal uplift: gold 4.5%, silver 8%,
+platinum 4.5% ASSUMED, not in the sheet) and weight are summed across lines. "Insure at replacement
+value" is now a switch instead of the old per-shipment dropdown. Inputs are stored under
+`courier.brinks.inputs.v2` (v1 shape is ignored). Test: `test_calc2.mjs` in the session scratchpad,
+21 checks incl. a 140 gold + 500 silver joint shipment.
+**Live spot:** unit price = live metal price per oz × unit weight in oz. Gold/silver/
 platinum USD per oz from `api.gold-api.com` (free, no key, CORS open) × USD→ZAR from `open.er-api.com`
 (free, updates daily). Refreshes every 5 minutes; typing in the price switches to MANUAL with a
 "Use live price" link back. If either endpoint dies, the page says so and the price stays editable.

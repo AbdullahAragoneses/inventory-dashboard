@@ -4,154 +4,125 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SA Bullion Inventory Dashboard</title>
+<link rel="icon" href="assets/logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* ---------- Tokens: Tailwind gray/blue scale from the reference. Light first, dark overrides. ---------- */
+  /* ---------- Tokens: Solstice (Minimal UI) palette, captured 2026-09-25 from solstice.goldstore.co.za ---------- */
   :root {
-    --bg: #F9FAFB;          /* gray-50  */
-    --panel: #FFFFFF;       /* white    */
-    --border: #E5E7EB;      /* gray-200 */
-    --text: #111827;        /* gray-900 */
-    --text-2: #4B5563;      /* gray-600 */
-    --text-3: #6B7280;      /* gray-500 */
-    --hover: #F9FAFB;       /* gray-50  */
-    --active-bg: #E8F1F6;   /* blue-50  */
-    --active-text: #16587B; /* blue-700 */
-    --accent: #16587B;      /* blue-500 */
-    --accent-2: #124A68;    /* blue-600 */
-    --shadow: 0 1px 2px rgba(0,0,0,.05);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,.08);
-    --tint-blue: #E8F1F6;   --ic-blue: #16587B;
-    --tint-green: #F0FDF4;  --ic-green: #16A34A;
-    --tint-purple: #FAF5FF; --ic-purple: #9333EA;
-    --tint-orange: #FFF7ED; --ic-orange: #EA580C;
-    --w-open: 256px; --w-closed: 64px;
+    --bg: #F7F8FA; --paper: #FFFFFF; --neutral: #F4F6F8;
+    --divider: rgba(145,158,171,.2); --divider-2: rgba(145,158,171,.12); --hover: rgba(145,158,171,.08);
+    --text: #1C252E; --text-2: #637381; --text-3: #919EAB;
+    --primary: #1C252E; --primary-dark: #141A21;
+    --success: #0BDDB2; --success-dark: #099E7F; --success-tint: rgba(11,221,178,.16);
+    --warning: #FF9E01; --warning-light: #FCC264; --warning-darker: #754800; --warning-tint: rgba(255,158,1,.16);
+    --info: #00A8D5; --info-light: #5FD1F0; --info-darker: #004F64; --info-tint: rgba(0,168,213,.16);
+    --secondary: #8032FD; --secondary-darker: #33067A; --secondary-tint: rgba(128,50,253,.16);
+    --grey-tint: rgba(145,158,171,.16); --grey-dark: #454F5B;
+    --shadow-card: 0 0 2px 0 rgba(145,158,171,.2), 0 12px 24px -4px rgba(145,158,171,.12);
+    --shadow-z8: 0 8px 16px 0 rgba(145,158,171,.16);
+    --nav-active-bg: #141A21; --nav-active-text: #FFFFFF; --nav-strip: #141A21;
+    --dark-card: linear-gradient(135deg, #0B0F19 0%, #111827 50%, #0D1322 100%);
+    --w-open: 300px; --w-mini: 88px;
   }
   :root[data-theme="dark"] {
-    --bg: #030712;          /* gray-950 */
-    --panel: #111827;       /* gray-900 */
-    --border: #1F2937;      /* gray-800 */
-    --text: #F3F4F6;        /* gray-100 */
-    --text-2: #9CA3AF;      /* gray-400 */
-    --text-3: #6B7280;
-    --hover: #1F2937;       /* gray-800 */
-    --active-bg: rgba(22,88,123,.35);
-    --active-text: #84B3CE;
-    --shadow: 0 1px 2px rgba(0,0,0,.4);
-    --shadow-md: 0 4px 6px -1px rgba(0,0,0,.5);
-    --tint-blue: rgba(22,88,123,.25);   --ic-blue: #84B3CE;
-    --tint-green: rgba(20,83,45,.2);   --ic-green: #4ADE80;
-    --tint-purple: rgba(88,28,135,.2); --ic-purple: #C084FC;
-    --tint-orange: rgba(124,45,18,.2); --ic-orange: #FB923C;
+    --bg: #141A21; --paper: #1C252E; --neutral: #28323D; --text: #FFFFFF; --text-2: #919EAB; --text-3: #637381;
+    --shadow-card: 0 0 2px 0 rgba(0,0,0,.2), 0 12px 24px -4px rgba(0,0,0,.12); --shadow-z8: 0 8px 16px 0 rgba(0,0,0,.16);
+    --nav-active-bg: #FFFFFF; --nav-active-text: #141A21;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; font-family: 'Public Sans', -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
   button { font: inherit; color: inherit; }
   .app { display: flex; height: 100vh; overflow: hidden; }
 
   /* ---------- Sidebar ---------- */
-  .sidebar {
-    position: relative; width: var(--w-open); flex-shrink: 0; height: 100vh; padding: 8px;
-    background: var(--panel); border-right: 1px solid var(--border); box-shadow: var(--shadow);
-    transition: width .3s ease; display: flex; flex-direction: column;
-  }
-  .sidebar.closed { width: var(--w-closed); }
-
-  .title { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-  .title-row { display: flex; align-items: center; justify-content: space-between; padding: 8px; border-radius: 6px; cursor: pointer; }
-  .title-row:hover { background: var(--hover); }
-  .title-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  .logo {
-    width: 40px; height: 40px; flex-shrink: 0; border-radius: 8px; display: grid; place-items: center;
-    background: linear-gradient(to bottom right, #84B3CE, #16587B); box-shadow: var(--shadow); color: #fff; font-weight: 700; font-size: 13px;
-  }
-  .title-text b { display: block; font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; }
-  .title-text span { display: block; font-size: 12px; color: var(--text-3); white-space: nowrap; }
-  .title svg.chev { width: 16px; height: 16px; color: var(--text-3); }
-  .sidebar.closed .title-text, .sidebar.closed .title svg.chev { display: none; }
-  .sidebar.closed .title-row { justify-content: center; padding: 4px 0; }
-
-  .options { display: flex; flex-direction: column; gap: 4px; margin-bottom: 32px; }
-  .opt {
-    position: relative; display: flex; align-items: center; height: 44px; width: 100%;
-    border: none; border-left: 2px solid transparent; border-radius: 6px; background: transparent; cursor: pointer;
-    color: var(--text-2); transition: background .2s, color .2s;
-  }
+  .sidebar { position: relative; width: var(--w-open); flex-shrink: 0; height: 100vh; background: var(--paper); border-right: 1px solid var(--divider-2); display: flex; flex-direction: column; transition: width .25s ease; }
+  .sidebar.closed { width: var(--w-mini); }
+  .strip { height: 68px; flex-shrink: 0; background: var(--nav-strip); display: flex; align-items: center; gap: 12px; padding: 0 24px; color: #fff; }
+  .sidebar.closed .strip { padding: 0; justify-content: center; }
+  .logo { width: 32px; height: 32px; flex-shrink: 0; }
+  .brand { font-weight: 700; font-size: 15px; white-space: nowrap; line-height: 1.2; }
+  .brand small { display: block; font-size: 11px; font-weight: 500; opacity: .7; }
+  .sidebar.closed .brand { display: none; }
+  .toggle { position: absolute; top: 26px; right: -14px; width: 28px; height: 28px; border-radius: 50%; background: var(--paper); border: 1px solid var(--divider-2); box-shadow: var(--shadow-z8); display: grid; place-items: center; cursor: pointer; z-index: 2; color: var(--text-2); }
+  .toggle svg { width: 16px; height: 16px; transition: transform .25s; }
+  .sidebar.closed .toggle svg { transform: rotate(180deg); }
+  .options { display: flex; flex-direction: column; gap: 4px; padding: 16px; }
+  .sidebar.closed .options { padding: 16px 4px 16px 0; }
+  .opt { display: flex; align-items: center; gap: 12px; height: 44px; padding: 4px 8px 4px 12px; border: none; border-radius: 8px; background: transparent; cursor: pointer; color: var(--text-2); font-size: 14px; font-weight: 500; text-align: left; transition: background .15s, color .15s; }
   .opt:hover { background: var(--hover); color: var(--text); }
-  .opt.selected { background: var(--active-bg); color: var(--active-text); border-left-color: var(--accent); box-shadow: var(--shadow); }
-  .opt .ic { width: 46px; height: 100%; display: grid; place-content: center; flex-shrink: 0; }
-  .opt .ic svg { width: 16px; height: 16px; }
-  .opt .lbl { font-size: 14px; font-weight: 500; white-space: nowrap; }
-  .sidebar.closed .opt .lbl { display: none; }
-
-  .section { border-top: 1px solid var(--border); padding-top: 16px; }
-  .section-h { padding: 8px 12px; font-size: 12px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
-  .sidebar.closed .section { display: none; }
-
-  .hide {
-    position: absolute; left: 0; right: 0; bottom: 0; border: none; border-top: 1px solid var(--border);
-    background: transparent; cursor: pointer; display: flex; align-items: center; padding: 12px;
-  }
-  .hide:hover { background: var(--hover); }
-  .hide .ic { width: 40px; height: 40px; display: grid; place-content: center; }
-  .hide svg { width: 16px; height: 16px; color: var(--text-3); transition: transform .3s; transform: rotate(180deg); }
-  .sidebar.closed .hide svg { transform: rotate(0deg); }
-  .hide .lbl { font-size: 14px; font-weight: 500; color: var(--text-2); }
-  .sidebar.closed .hide .lbl { display: none; }
+  .opt.selected { background: var(--nav-active-bg); color: var(--nav-active-text); font-weight: 600; }
+  .ic { width: 24px; height: 24px; flex-shrink: 0; background: currentColor; -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; }
+  .lbl { white-space: nowrap; }
+  .sidebar.closed .opt { flex-direction: column; justify-content: center; gap: 4px; height: 58px; width: 83px; padding: 8px 4px 6px; border-radius: 0 15px 15px 0; font-size: 10px; }
+  .avatar { margin: auto 16px 20px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: var(--success-dark); background: var(--success-tint); box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--success); cursor: default; }
+  .sidebar.closed .avatar { margin: auto auto 20px; }
 
   /* ---------- Main ---------- */
-  main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--bg); }
-  .head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; }
-  .head h1 { font-size: 24px; font-weight: 700; }
-  .head p { color: var(--text-2); margin-top: 2px; font-size: 14px; }
-  .head-actions { display: flex; align-items: center; gap: 12px; }
-  .ibtn {
-    width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel);
-    color: var(--text-2); cursor: pointer; display: grid; place-items: center; position: relative; transition: background .15s, color .15s;
-  }
+  main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .head { height: 72px; flex-shrink: 0; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 40px; }
+  .ibtn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--divider-2); background: var(--paper); color: var(--text-2); cursor: pointer; display: grid; place-items: center; transition: background .15s; }
   .ibtn:hover { background: var(--hover); color: var(--text); }
-  .ibtn svg { width: 18px; height: 18px; }
-  .ibtn .dot { position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; border-radius: 50%; background: #EF4444; }
+  .ibtn svg { width: 20px; height: 20px; }
   .ibtn a { color: inherit; display: grid; place-items: center; width: 100%; height: 100%; }
   #iconSun, #iconMoon { display: none; }
   :root:not([data-theme="dark"]) #iconMoon { display: block; }
   :root[data-theme="dark"] #iconSun { display: block; }
+  .head .avatar { margin: 0 0 0 8px; width: 40px; height: 40px; font-size: 14px; }
 
   .content { flex: 1; position: relative; min-height: 0; }
-  iframe { position: absolute; inset: 0 24px 24px 24px; width: calc(100% - 48px); height: calc(100% - 24px); border: 1px solid var(--border); border-radius: 12px; background: var(--panel); box-shadow: var(--shadow); }
+  .titlebar { padding: 0 40px 16px; }
+  .titlebar h1 { font-size: 26.4px; font-weight: 700; line-height: 1.5; }
+  .titlebar p { color: var(--text-2); font-size: 16px; margin-top: 2px; }
+  iframe { position: absolute; inset: 0 40px 32px 40px; width: calc(100% - 80px); height: calc(100% - 32px); border: none; border-radius: 16px; background: var(--paper); box-shadow: var(--shadow-card); }
+  .frame-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; }
+  .frame-wrap .titlebar { flex-shrink: 0; }
+  .frame-wrap .fr { flex: 1; position: relative; min-height: 0; }
 
-  .home { position: absolute; inset: 0; overflow: auto; padding: 0 24px 24px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; margin-bottom: 32px; }
-  .stat {
-    padding: 24px; border-radius: 12px; border: 1px solid var(--border); background: var(--panel); box-shadow: var(--shadow);
-    cursor: pointer; transition: box-shadow .2s;
-  }
-  .stat:hover { box-shadow: var(--shadow-md); }
-  .stat .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .stat .tint { padding: 8px; border-radius: 8px; display: grid; place-items: center; }
-  .stat .tint svg { width: 20px; height: 20px; }
-  .stat .arrow { width: 16px; height: 16px; color: var(--text-3); }
-  .stat h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
-  .stat p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
-  .stat .go { font-size: 13px; color: var(--accent-2); margin-top: 8px; font-weight: 500; }
+  .home { position: absolute; inset: 0; overflow: auto; padding: 0 40px 40px; outline: none; }
+  .hero { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 2.6fr); gap: 24px; margin: 24px 0; }
+  .dark { background: var(--dark-card); border-radius: 16px; padding: 20px 24px; color: #fff; min-height: 236px; display: flex; flex-direction: column; box-shadow: var(--shadow-card); }
+  .live-h { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #F8FAFC; }
+  .live-h .r { font-weight: 500; text-transform: none; letter-spacing: 0; color: #94A3B8; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); display: inline-block; margin-right: 10px; vertical-align: middle; }
+  .clock { font-size: 46px; font-weight: 800; letter-spacing: .06em; margin: auto 0; font-variant-numeric: tabular-nums; text-shadow: 0 0 24px rgba(11,221,178,.35); }
+  .live-f { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; margin-top: 12px; font-size: 13px; color: #94A3B8; }
+  .chip { display: inline-block; padding: 4px 9px; border-radius: 6px; font-size: 12px; font-weight: 700; letter-spacing: .02em; color: #34D399; background: rgba(16,185,129,.16); }
+  .spot { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: auto 0; padding: 12px 0; }
+  .spot .m { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #F1F5F9; }
+  .spot .m span { font-size: 11px; font-weight: 500; color: #94A3B8; margin-left: auto; }
+  .badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; letter-spacing: .04em; }
+  .badge.au { background: rgba(255,158,1,.24); color: #FCC264; } .badge.ag { background: rgba(145,158,171,.28); color: #DFE3E8; }
+  .badge.pt { background: rgba(0,168,213,.24); color: #5FD1F0; } .badge.fx { background: rgba(11,221,178,.2); color: #56F5D4; }
+  .spot .p { font-size: 24.8px; font-weight: 800; letter-spacing: -.03em; margin: 8px 0 6px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .spot .s { font-size: 11px; color: #94A3B8; }
+  .spot .s.err { color: #FF827F; }
 
-  .panel { border-radius: 12px; border: 1px solid var(--border); background: var(--panel); padding: 24px; box-shadow: var(--shadow); }
-  .panel h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
-  .row { display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 8px; }
+  .section-h { font-size: 18px; font-weight: 700; margin: 8px 0 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; margin-bottom: 24px; }
+  .card { background: var(--paper); border-radius: 16px; box-shadow: var(--shadow-card); padding: 24px; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+  .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-z8); }
+  .card .tile { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 20px; }
+  .card .tile .ic { width: 26px; height: 26px; }
+  .card h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .card p { font-size: 14px; color: var(--text-2); line-height: 1.55; }
+  .card .go { font-size: 13px; color: var(--success-dark); font-weight: 600; margin-top: 14px; }
+  .panel { background: var(--paper); border-radius: 16px; box-shadow: var(--shadow-card); padding: 24px; }
+  .panel h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+  .row { display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 12px; }
   .row:hover { background: var(--hover); }
-  .row .tint { padding: 8px; border-radius: 8px; display: grid; place-items: center; }
-  .row .tint svg { width: 16px; height: 16px; }
-  .row .t { flex: 1; min-width: 0; }
-  .row .t b { display: block; font-size: 14px; font-weight: 500; }
-  .row .t span { display: block; font-size: 12px; color: var(--text-3); }
-  .row .when { font-size: 12px; color: var(--text-3); }
+  .row .tile { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; }
+  .row .tile .ic { width: 22px; height: 22px; }
+  .row .t b { display: block; font-size: 14px; font-weight: 600; }
+  .row .t span { display: block; font-size: 13px; color: var(--text-2); }
 
+  @media (max-width: 1100px) { .hero { grid-template-columns: 1fr; } .spot { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 720px) {
-    .sidebar { width: var(--w-closed); }
-    .title-text, .title svg.chev, .opt .lbl, .section, .hide .lbl { display: none !important; }
-    .head { padding: 16px; } .home { padding: 0 16px 16px; }
+    .sidebar { width: var(--w-mini); } .brand { display: none !important; } .strip { padding: 0 !important; justify-content: center !important; }
+    .options { padding: 16px 4px 16px 0 !important; } .opt { flex-direction: column; justify-content: center; gap: 4px; height: 58px; width: 83px; padding: 8px 4px 6px; border-radius: 0 15px 15px 0; font-size: 10px; }
+    .head, .titlebar { padding-left: 16px; padding-right: 16px; } .home { padding: 0 16px 16px; }
     iframe { inset: 0 16px 16px 16px; width: calc(100% - 32px); height: calc(100% - 16px); }
   }
 </style>
@@ -159,91 +130,87 @@
 <body>
 <div class="app">
   <nav class="sidebar" id="sidebar">
-    <div class="title">
-      <div class="title-row" id="titleRow" title="Expand / collapse">
-        <div class="title-left">
-          <div class="logo">SA</div>
-          <div class="title-text"><b>SA Bullion</b><span>Inventory</span></div>
-        </div>
-        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </div>
-    </div>
+    <div class="strip"><img class="logo" src="assets/logo.svg" alt=""><div class="brand">SA Bullion<small>Inventory</small></div></div>
+    <button class="toggle" id="hideBtn" title="Collapse / expand menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="options" id="options"></div>
-    <div class="section">
-      <div class="section-h">Account</div>
-      <button class="opt" id="optUser" title="Abdullah Aragoneses">
-        <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-        <span class="lbl">Abdullah Aragoneses</span>
-      </button>
-    </div>
-    <button class="hide" id="hideBtn" title="Hide / show menu">
-      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg></span>
-      <span class="lbl">Hide</span>
-    </button>
+    <div class="avatar" title="Abdullah Aragoneses">A</div>
   </nav>
 
   <main>
     <div class="head">
-      <div><h1 id="title">Dashboard</h1><p id="subtitle">Welcome back to the inventory tools</p></div>
-      <div class="head-actions">
-        <button class="ibtn" id="openNewBtn" title="Open in new tab" hidden><a id="openNew" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a></button>
-        <button class="ibtn" id="themeBtn" title="Toggle light / dark">
-          <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        </button>
-        <button class="ibtn" title="Abdullah Aragoneses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
-      </div>
+      <button class="ibtn" id="openNewBtn" title="Open in new tab" hidden><a id="openNew" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a></button>
+      <button class="ibtn" id="themeBtn" title="Toggle light / dark">
+        <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="iconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <div class="avatar" title="Abdullah Aragoneses">A</div>
     </div>
+
     <div class="content">
       <div class="home" id="home">
+        <div class="titlebar" style="padding-left:0;padding-right:0"><h1>Welcome back, Abdullah Aragoneses!</h1><p>Your inventory tools, in one view. Proof coins, stock takes, shipping paperwork and courier costs.</p></div>
+        <div class="hero">
+          <div class="dark">
+            <div class="live-h"><span><i class="dot"></i>Live SAST time</span><span class="r" id="clockDate"></span></div>
+            <div class="clock" id="clock">--:--:--</div>
+            <div class="live-f"><span>South Africa (UTC+2)</span><span class="chip" id="tradingChip">Trading Active</span></div>
+          </div>
+          <div class="dark">
+            <div class="live-h"><span><i class="dot"></i>Live spot bullion (ZAR)</span><span class="r"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="countdown">Updates soon</span><a id="spotRefresh" title="Refresh" style="cursor:pointer;color:#94A3B8;display:grid"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></a></span></div>
+            <div class="spot" id="spot">
+              <div><div class="m"><span class="badge au">AU</span>Gold<span>1 oz</span></div><div class="p" id="pGold">–</div><div class="s" id="sGold"></div></div>
+              <div><div class="m"><span class="badge ag">AG</span>Silver<span>1 oz</span></div><div class="p" id="pSilver">–</div><div class="s" id="sSilver"></div></div>
+              <div><div class="m"><span class="badge pt">PT</span>Platinum<span>1 oz</span></div><div class="p" id="pPlat">–</div><div class="s" id="sPlat"></div></div>
+              <div><div class="m"><span class="badge fx">FX</span>USD / ZAR<span>Spot FX</span></div><div class="p" id="pFx">–</div><div class="s" id="sFx"></div></div>
+            </div>
+            <div class="live-f"><span>Spot quotes per troy ounce · gold-api.com × open.er-api.com</span><span style="color:#34D399;font-weight:600"><i class="dot" style="margin-right:6px"></i>Real-time feed</span></div>
+          </div>
+        </div>
+        <div class="section-h">Tools</div>
         <div class="grid" id="grid"></div>
         <div class="panel">
           <h3>How this works</h3>
-          <div class="row"><span class="tint" style="background:var(--tint-blue);color:var(--ic-blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg></span><div class="t"><b>One window, every tool</b><span>Pick a tool on the left. It runs live inside this page, exactly as at its own link.</span></div></div>
-          <div class="row"><span class="tint" style="background:var(--tint-green);color:var(--ic-green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><div class="t"><b>Your own logins still apply</b><span>Each tool keeps its own account and permissions. Log in once and it remembers you.</span></div></div>
-          <div class="row"><span class="tint" style="background:var(--tint-purple);color:var(--ic-purple)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><div class="t"><b>Light or dark</b><span>Use the toggle top-right. The tool inside follows.</span></div></div>
+          <div class="row"><span class="tile" style="background:var(--info-tint);color:var(--info)"><span class="ic" style="--icon:url(assets/icons/ic-external.svg)"></span></span><div class="t"><b>One window, every tool</b><span>Pick a tool on the left. It runs live inside this page, exactly as at its own link.</span></div></div>
+          <div class="row"><span class="tile" style="background:var(--success-tint);color:var(--success-dark)"><span class="ic" style="--icon:url(assets/icons/ic-user.svg)"></span></span><div class="t"><b>Your own logins still apply</b><span>Each tool keeps its own account and permissions. Log in once and it remembers you.</span></div></div>
+          <div class="row"><span class="tile" style="background:var(--warning-tint);color:var(--warning-darker)"><span class="ic" style="--icon:url(assets/icons/ic-analytics.svg)"></span></span><div class="t"><b>Live spot above</b><span>Gold, silver and platinum per ounce in Rand, refreshed every five minutes. The courier calculator uses the same feed.</span></div></div>
         </div>
       </div>
-      <iframe id="frame" hidden allow="camera; microphone; clipboard-read; clipboard-write; fullscreen"></iframe>
+      <div class="frame-wrap" id="frameWrap" hidden>
+        <div class="titlebar"><h1 id="title"></h1><p id="subtitle"></p></div>
+        <div class="fr"><iframe id="frame" allow="camera; microphone; clipboard-read; clipboard-write; fullscreen"></iframe></div>
+      </div>
     </div>
   </main>
 </div>
 
 <script>
-  const ICONS = {
-    home:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z"/></svg>',
-    coins:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/><path d="m16.71 13.88.7.71-2.82 2.82"/></svg>',
-    clipboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>',
-    file:      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
-    truck:     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5v8h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>',
-    arrow:     '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>',
-  };
-
-  // ---- Add a new app here: one line per tool. ----
+  // ---- Add a new app here: one line per tool. icon = file in assets/icons (Solstice navbar set). ----
   const APPS = [
-    { id: 'home',  icon: 'home',      label: 'Dashboard',   url: null },
-    { id: 'proof', icon: 'coins',     label: 'Proof Coins', tint: 'blue',   url: 'https://proof-dashboard-eight.vercel.app/',          blurb: 'Capture proof coins, attach photos, and feed the public catalogue.' },
-    { id: 'stock', icon: 'clipboard', label: 'Stock Take',  tint: 'green',  url: 'https://stock-take-dashboard-seven.vercel.app/',           blurb: 'Vault stock takes with counted-vs-expected checks. Replaces the paper count.' },
-    { id: 'sli',   icon: 'file',      label: 'SLI',         tint: 'purple', url: 'https://abdullaharagoneses.github.io/sli-generator/', blurb: 'Shipper’s Letter of Instruction generator with a shared invoice counter.' },
-    { id: 'courier', icon: 'truck',   label: 'Courier Fees', tint: 'orange', url: 'courier/',                                          blurb: 'BRINKS, RAM and MDS delivery cost calculators with live spot. BRINKS is live; the others follow.' },
+    { id: 'home',    icon: 'ic-analytics', label: 'Dashboard',    url: null },
+    { id: 'proof',   icon: 'ic-product',   label: 'Proof Coins',  tint: 'warning',   url: 'https://proof-dashboard-eight.vercel.app/',          blurb: 'Capture proof coins, attach photos, and feed the public catalogue.' },
+    { id: 'stock',   icon: 'ic-banking',   label: 'Stock Take',   tint: 'info',      url: 'https://stock-take-dashboard-seven.vercel.app/',     blurb: 'Vault stock takes with counted-vs-expected checks. Replaces the paper count.' },
+    { id: 'sli',     icon: 'ic-invoice',   label: 'SLI',          tint: 'secondary', url: 'https://abdullaharagoneses.github.io/sli-generator/', blurb: 'Shipper’s Letter of Instruction generator with a shared invoice counter.' },
+    { id: 'courier', icon: 'ic-tour',      label: 'Courier Fees', tint: 'success',   url: 'courier/',                                           blurb: 'BRINKS, RAM and MDS delivery cost calculators with live spot. BRINKS is live; the others follow.' },
   ];
+  const TINT = { warning: ['var(--warning-tint)', 'var(--warning-darker)'], info: ['var(--info-tint)', 'var(--info-darker)'], secondary: ['var(--secondary-tint)', 'var(--secondary-darker)'], success: ['var(--success-tint)', 'var(--success-dark)'] };
   const LOCAL = { proof: 'http://127.0.0.1:8789/', stock: 'http://127.0.0.1:8000/', sli: 'http://127.0.0.1:8788/' };
   if (location.search.includes('local')) for (const a of APPS) if (LOCAL[a.id]) a.url = LOCAL[a.id];
   for (const a of APPS) if (a.url) a.url = new URL(a.url, location.href).href;   // relative pages (courier/) live in this repo
 
   const $ = id => document.getElementById(id);
-  const sidebar = $('sidebar'), options = $('options'), grid = $('grid'), frame = $('frame'), home = $('home');
+  const sidebar = $('sidebar'), options = $('options'), grid = $('grid'), frame = $('frame'), home = $('home'), frameWrap = $('frameWrap');
 
   for (const app of APPS) {
     const b = document.createElement('button');
     b.className = 'opt'; b.dataset.id = app.id; b.title = app.label;
-    b.innerHTML = `<span class="ic">${ICONS[app.icon]}</span><span class="lbl">${app.label}</span>`;
+    b.innerHTML = `<span class="ic" style="--icon:url(assets/icons/${app.icon}.svg)"></span><span class="lbl">${app.label}</span>`;
     b.onclick = () => show(app.id);
     options.appendChild(b);
     if (app.url) {
+      const [bg, fg] = TINT[app.tint];
       const c = document.createElement('div');
-      c.className = 'stat';
-      c.innerHTML = `<div class="top"><span class="tint" style="background:var(--tint-${app.tint});color:var(--ic-${app.tint})">${ICONS[app.icon]}</span>${ICONS.arrow}</div><h3>${app.label}</h3><p>${app.blurb}</p><div class="go">Open ${app.label} →</div>`;
+      c.className = 'card';
+      c.innerHTML = `<div class="tile" style="background:${bg};color:${fg}"><span class="ic" style="--icon:url(assets/icons/${app.icon}.svg)"></span></div><h3>${app.label}</h3><p>${app.blurb}</p><div class="go">Open ${app.label} →</div>`;
       c.onclick = () => show(app.id);
       grid.appendChild(c);
     }
@@ -254,28 +221,55 @@
     document.querySelectorAll('.opt[data-id]').forEach(n => n.classList.toggle('selected', n.dataset.id === app.id));
     if (app.url) {
       if (frame.src !== app.url) frame.src = app.url;
-      frame.hidden = false; home.hidden = true;
+      frameWrap.hidden = false; home.hidden = true;
       $('title').textContent = app.label; $('subtitle').textContent = app.blurb;
       $('openNew').href = app.url; $('openNewBtn').hidden = false;
     } else {
-      frame.hidden = true; home.hidden = false;
-      $('title').textContent = 'Dashboard'; $('subtitle').textContent = 'Welcome back to the inventory tools';
-      $('openNewBtn').hidden = true;
+      frameWrap.hidden = true; home.hidden = false; $('openNewBtn').hidden = true;
     }
     save('invdash2.last', app.id); location.hash = app.id;
   }
 
   function setOpen(open) { sidebar.classList.toggle('closed', !open); save('invdash2.open', open ? '1' : '0'); }
   $('hideBtn').onclick = () => setOpen(sidebar.classList.contains('closed'));
-  $('titleRow').onclick = () => setOpen(sidebar.classList.contains('closed'));
 
   function setTheme(t) { document.documentElement.dataset.theme = t; save('invdash2.theme', t); pushTheme(); }
-  function pushTheme() { try { if (!frame.hidden && frame.contentWindow) frame.contentWindow.postMessage({ type: 'invdash-theme', theme: document.documentElement.dataset.theme }, '*'); } catch {} }
+  function pushTheme() { try { if (!frameWrap.hidden && frame.contentWindow) frame.contentWindow.postMessage({ type: 'invdash-theme', theme: document.documentElement.dataset.theme }, '*'); } catch {} }
   frame.addEventListener('load', pushTheme);
   $('themeBtn').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 
   function save(k, v) { try { localStorage.setItem(k, v); } catch {} }
   function load(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } }
+
+  // ---------- Live clock ----------
+  function tick() {
+    const d = new Date();
+    $('clock').textContent = d.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    $('clockDate').textContent = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    const h = d.getHours(), wd = d.getDay();
+    $('tradingChip').textContent = wd >= 1 && wd <= 5 && h >= 8 && h < 17 ? 'Trading Active' : 'After hours';
+    const left = Math.max(0, Math.round((nextSpot - d) / 1000));
+    $('countdown').textContent = 'Updates in ' + Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+  }
+
+  // ---------- Live spot: same free feeds the courier calculator uses ----------
+  const SPOT_MS = 5 * 60 * 1000; let nextSpot = new Date(Date.now() + SPOT_MS);
+  const rand = n => 'R ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  async function fetchSpot() {
+    const t = new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
+    try {
+      const [au, ag, pt, fx] = await Promise.all(['XAU', 'XAG', 'XPT'].map(s => fetch('https://api.gold-api.com/price/' + s, { cache: 'no-store' }).then(r => r.json())).concat(fetch('https://open.er-api.com/v6/latest/USD').then(r => r.json())));
+      const zar = fx.rates.ZAR;
+      $('pGold').textContent = rand(au.price * zar);   $('sGold').textContent = '$' + au.price.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' · ' + t;
+      $('pSilver').textContent = rand(ag.price * zar); $('sSilver').textContent = '$' + ag.price.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' · ' + t;
+      $('pPlat').textContent = rand(pt.price * zar);   $('sPlat').textContent = '$' + pt.price.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' · ' + t;
+      $('pFx').textContent = 'R ' + zar.toFixed(2);     $('sFx').textContent = 'daily rate · ' + fx.time_last_update_utc.slice(5, 16);
+      for (const id of ['sGold', 'sSilver', 'sPlat', 'sFx']) $(id).classList.remove('err');
+    } catch { for (const id of ['sGold', 'sSilver', 'sPlat', 'sFx']) { $(id).textContent = 'feed unavailable'; $(id).classList.add('err'); } }
+    nextSpot = new Date(Date.now() + SPOT_MS);
+  }
+  $('spotRefresh').onclick = fetchSpot;
+  fetchSpot(); setInterval(fetchSpot, SPOT_MS); tick(); setInterval(tick, 1000);
 
   // ?theme=dark in the URL forces a theme (handy for previews); otherwise last choice, default light.
   const forced = new URLSearchParams(location.search).get('theme');

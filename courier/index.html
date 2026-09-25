@@ -5,126 +5,143 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Courier Fees</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  /* Same tokens as the Inventory Dashboard shell so it reads as one product. */
+  /* Solstice (Minimal UI) tokens, same as the dashboard shell. */
   :root {
-    --bg: #FFFFFF; --panel: #FFFFFF; --panel-2: #F9FAFB; --border: #E5E7EB; --border-2: #D1D5DB;
-    --text: #111827; --text-2: #4B5563; --text-3: #6B7280; --hover: #F9FAFB;
-    --active-bg: #E8F1F6; --active-text: #16587B; --accent: #16587B; --accent-2: #124A68; --accent-soft: #84B3CE;
-    --ok: #16A34A; --warn: #EA580C; --warn-bg: #FFF7ED;
-    --shadow: 0 1px 2px rgba(0,0,0,.05);
+    --bg: #FFFFFF; --paper: #FFFFFF; --neutral: #F4F6F8; --divider: rgba(145,158,171,.2); --divider-2: rgba(145,158,171,.12); --hover: rgba(145,158,171,.08);
+    --text: #1C252E; --text-2: #637381; --text-3: #919EAB; --primary: #1C252E; --primary-dark: #141A21;
+    --success: #0BDDB2; --success-dark: #099E7F; --success-tint: rgba(11,221,178,.16);
+    --warning: #FF9E01; --warning-darker: #754800; --warning-tint: rgba(255,158,1,.16);
+    --error: #FF322D; --error-tint: rgba(255,50,45,.12);
+    --info-darker: #004F64; --info-tint: rgba(0,168,213,.16); --grey-tint: rgba(145,158,171,.16);
+    --shadow-card: 0 0 2px 0 rgba(145,158,171,.2), 0 12px 24px -4px rgba(145,158,171,.12);
+    --dark-card: linear-gradient(135deg, #0B0F19 0%, #111827 50%, #0D1322 100%);
+    --input-border: rgba(145,158,171,.32);
   }
   :root[data-theme="dark"] {
-    --bg: #111827; --panel: #111827; --panel-2: #1F2937; --border: #1F2937; --border-2: #374151;
-    --text: #F3F4F6; --text-2: #9CA3AF; --text-3: #6B7280; --hover: #1F2937;
-    --active-bg: rgba(22,88,123,.35); --active-text: #84B3CE; --accent: #16587B; --accent-2: #124A68; --accent-soft: #84B3CE;
-    --ok: #4ADE80; --warn: #FB923C; --warn-bg: rgba(124,45,18,.2);
-    --shadow: 0 1px 2px rgba(0,0,0,.4);
+    --bg: #1C252E; --paper: #1C252E; --neutral: #28323D; --text: #FFFFFF; --text-2: #919EAB; --text-3: #637381;
+    --shadow-card: 0 0 2px 0 rgba(0,0,0,.2), 0 12px 24px -4px rgba(0,0,0,.12); --input-border: rgba(145,158,171,.28);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { min-height: 100%; font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+  html, body { min-height: 100%; font-family: 'Public Sans', -apple-system, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
   body { padding: 20px 24px 32px; }
   button, input, select { font: inherit; color: inherit; }
 
-  /* Courier tabs */
-  .tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-  .tab { border: none; background: transparent; padding: 10px 16px; cursor: pointer; color: var(--text-2); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-  .tab:hover { color: var(--text); }
-  .tab.on { color: var(--active-text); border-bottom-color: var(--accent); }
-  .tab .soon { font-size: 11px; color: var(--text-3); margin-left: 6px; font-weight: 400; }
+  /* Courier tabs: Solstice segmented control */
+  .tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--neutral); margin-bottom: 20px; }
+  .tab { border: none; background: transparent; padding: 7px 16px; border-radius: 8px; cursor: pointer; color: var(--text-2); font-weight: 600; font-size: 13px; }
+  .tab.on { background: var(--paper); color: var(--text); box-shadow: 0 1px 2px rgba(145,158,171,.24); }
+  .tab .soon { font-size: 10px; color: var(--text-3); margin-left: 6px; font-weight: 500; }
   .view { display: none; } .view.on { display: block; }
 
-  .cols { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 20px; align-items: start; }
-  @media (max-width: 860px) { .cols { grid-template-columns: 1fr; } }
+  .cols { display: grid; grid-template-columns: minmax(320px, 440px) 1fr; gap: 24px; align-items: start; }
+  @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
 
-  .card { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); box-shadow: var(--shadow); }
-  .card > h3 { font-size: 15px; font-weight: 600; padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .card > h3 small { font-size: 12px; font-weight: 400; color: var(--text-3); }
-  .body { padding: 14px 18px 18px; }
+  .card { border-radius: 16px; background: var(--paper); box-shadow: var(--shadow-card); }
+  .card > h3 { font-size: 18px; font-weight: 700; padding: 20px 24px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .card > h3 small { font-size: 13px; font-weight: 400; color: var(--text-2); }
+  .body { padding: 4px 24px 24px; }
+  .sub-h { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); margin: 14px 0 8px; }
 
-  .field { display: grid; grid-template-columns: 1fr 150px; align-items: center; gap: 12px; padding: 7px 0; }
-  .field label { color: var(--text-2); }
-  .field label small { display: block; font-size: 11px; color: var(--text-3); }
-  .field input, .field select { width: 100%; height: 34px; padding: 0 10px; border: 1px solid var(--border-2); border-radius: 8px; background: var(--panel); text-align: right; }
-  .field select { text-align: left; }
-  .field input:focus, .field select:focus { outline: 2px solid var(--accent-soft); outline-offset: 0; border-color: var(--accent); }
+  .field { display: grid; grid-template-columns: 1fr 160px; align-items: center; gap: 12px; padding: 6px 0; }
+  .field label { color: var(--text); font-weight: 500; }
+  .field label small { display: block; font-size: 12px; color: var(--text-2); font-weight: 400; }
+  input, select { width: 100%; height: 38px; padding: 0 12px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--paper); }
+  input { text-align: right; }
+  input:focus, select:focus { outline: none; border-color: var(--text); box-shadow: 0 0 0 1px var(--text); }
   .field.chk { grid-template-columns: 1fr auto; }
-  .switch { position: relative; width: 40px; height: 22px; border-radius: 11px; background: var(--border-2); border: none; cursor: pointer; transition: background .15s; }
-  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .15s; }
-  .switch[aria-checked="true"] { background: var(--accent); } .switch[aria-checked="true"]::after { left: 21px; }
-  .prefix { position: relative; } .prefix::before { content: 'R'; position: absolute; left: 10px; top: 8px; color: var(--text-3); }
-  .prefix input { padding-left: 24px; }
+  .field.calc b { text-align: right; font-weight: 700; padding-right: 12px; font-variant-numeric: tabular-nums; }
+  .switch { position: relative; width: 40px; height: 22px; border-radius: 11px; background: rgba(145,158,171,.48); border: none; cursor: pointer; transition: background .15s; }
+  .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); transition: left .15s; }
+  .switch[aria-checked="true"] { background: var(--success-dark); } .switch[aria-checked="true"]::after { left: 21px; }
+
+  /* Shipment lines */
+  .line { border: 1px solid var(--divider); border-radius: 12px; padding: 12px; margin-bottom: 10px; background: var(--paper); }
+  .line .r1 { display: grid; grid-template-columns: 1.1fr 1fr .8fr 34px; gap: 8px; align-items: center; }
+  .line .r2 { display: grid; grid-template-columns: 1fr 160px; gap: 8px; align-items: center; margin-top: 8px; }
+  .line .r2 .prefix { justify-self: end; width: 160px; }
+  .line .custom { margin-top: 8px; display: grid; grid-template-columns: 1fr 160px; gap: 8px; align-items: center; }
+  .line .x { width: 34px; height: 38px; border: none; background: transparent; color: var(--text-3); cursor: pointer; border-radius: 8px; font-size: 18px; }
+  .line .x:hover { background: var(--error-tint); color: var(--error); }
+  .line .meta { font-size: 12px; color: var(--text-2); }
+  .line .meta b { color: var(--text); }
+  .live { font-size: 11px; color: var(--text-2); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .live.err { color: var(--error); }
+  .live a { color: var(--success-dark); cursor: pointer; text-decoration: underline; font-weight: 600; }
+  .pill { padding: 1px 7px; border-radius: 6px; font-weight: 700; font-size: 10px; letter-spacing: .04em; background: var(--success-tint); color: var(--success-dark); }
+  .pill.manual { background: var(--warning-tint); color: var(--warning-darker); }
+  .prefix { position: relative; } .prefix::before { content: 'R'; position: absolute; left: 12px; top: 9px; color: var(--text-3); }
+  .prefix input { padding-left: 26px; }
+  .add { width: 100%; height: 38px; border: 1px dashed var(--input-border); border-radius: 10px; background: transparent; color: var(--text-2); cursor: pointer; font-weight: 600; }
+  .add:hover { background: var(--hover); color: var(--text); }
 
   table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 9px 8px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
-  th { font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; }
+  th, td { padding: 10px 8px; text-align: right; border-bottom: 1px dashed var(--divider); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  th { font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; background: var(--neutral); border: none; }
+  th:first-child { border-radius: 8px 0 0 8px; } th:last-child { border-radius: 0 8px 8px 0; }
   th:first-child, td:first-child { text-align: left; }
-  td:first-child small { display: block; font-size: 11px; color: var(--text-3); white-space: normal; }
-  tr.total td { font-weight: 700; font-size: 15px; border-top: 2px solid var(--border-2); border-bottom: none; }
-  tr.total td:last-child { color: var(--active-text); }
+  td:first-child small { display: block; font-size: 12px; color: var(--text-2); white-space: normal; }
+  tr.total td { font-weight: 800; font-size: 16px; border-bottom: none; padding-top: 14px; }
+  tr.total td:last-child { color: var(--success-dark); }
   td.muted { color: var(--text-3); }
-  tr.off td { color: var(--text-3); text-decoration: line-through; }
-  tr.off td:first-child { text-decoration: none; }
+  tr.off td { color: var(--text-3); text-decoration: line-through; } tr.off td:first-child { text-decoration: none; }
 
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .kpi { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--panel-2); }
-  .kpi span { display: block; font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-  .kpi b { font-size: 16px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .kpis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi { padding: 12px 14px; border-radius: 12px; background: var(--neutral); }
+  .kpi span { display: block; font-size: 11px; color: var(--text-2); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+  .kpi b { font-size: 16px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .kpi.hi { background: var(--dark-card); color: #fff; } .kpi.hi span { color: #94A3B8; }
 
-  .note { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--text-2); font-size: 12px; line-height: 1.5; border-left: 3px solid var(--warn); }
+  .note { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: var(--warning-tint); color: var(--text-2); font-size: 12px; line-height: 1.5; }
   .note b { color: var(--text); }
-
-  .actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-  .btn { height: 34px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--border-2); background: var(--panel); cursor: pointer; font-weight: 500; }
+  .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .btn { height: 38px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--input-border); background: var(--paper); cursor: pointer; font-weight: 700; font-size: 13px; }
   .btn:hover { background: var(--hover); }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; } .btn.primary:hover { background: var(--accent-2); }
+  .btn.primary { background: var(--primary-dark); border-color: var(--primary-dark); color: #fff; box-shadow: 0 8px 16px 0 rgba(28,37,46,.24); } .btn.primary:hover { background: #000; }
+  :root[data-theme="dark"] .btn.primary { background: #fff; border-color: #fff; color: #141A21; box-shadow: none; }
 
-  details.card summary { list-style: none; cursor: pointer; font-size: 15px; font-weight: 600; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  details.card summary { list-style: none; cursor: pointer; font-size: 18px; font-weight: 700; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
   details.card summary::-webkit-details-marker { display: none; }
-  details.card summary small { font-size: 12px; font-weight: 400; color: var(--text-3); }
-  details.card[open] summary { border-bottom: 1px solid var(--border); }
-  .rates { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 4px 24px; }
-  .placeholder { padding: 40px 24px; text-align: center; color: var(--text-2); }
-  .placeholder h4 { font-size: 16px; color: var(--text); margin-bottom: 8px; }
-  .field.calc b { text-align: right; font-weight: 600; padding-right: 10px; }
-  .live { font-size: 11px; color: var(--text-3); padding: 0 0 6px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .live.err { color: var(--warn); }
-  .live a { color: var(--active-text); cursor: pointer; text-decoration: underline; }
-  .live .pill { padding: 1px 7px; border-radius: 999px; background: var(--active-bg); color: var(--active-text); font-weight: 600; }
-  .live .pill.manual { background: var(--warn-bg); color: var(--warn); }
+  details.card summary small { font-size: 13px; font-weight: 400; color: var(--text-2); }
+  .rates { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 24px; }
+  .placeholder { padding: 48px 24px; text-align: center; color: var(--text-2); }
+  .placeholder h4 { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--primary-dark); color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20; }
+  .toast.show { opacity: 1; }
 
   /* Quote card: a clean, self-contained sheet designed for a screenshot */
-  .overlay { position: fixed; inset: 0; background: rgba(17,24,39,.55); display: none; align-items: flex-start; justify-content: center; padding: 32px 16px; overflow: auto; z-index: 10; }
+  .overlay { position: fixed; inset: 0; background: rgba(20,26,33,.6); display: none; align-items: flex-start; justify-content: center; padding: 32px 16px; overflow: auto; z-index: 10; }
   .overlay.on { display: flex; }
-  .quote { width: 640px; max-width: 100%; background: #fff; color: #111827; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.35); font-variant-numeric: tabular-nums; }
-  .quote .qh { background: linear-gradient(135deg, #16587B, #124A68); color: #fff; padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; }
-  .quote .qh .brand { display: flex; align-items: center; gap: 12px; }
-  .quote .qh .mark { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,.15); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
-  .quote .qh b { display: block; font-size: 17px; font-weight: 700; }
-  .quote .qh span { display: block; font-size: 12px; opacity: .8; }
-  .quote .qh .date { text-align: right; font-size: 12px; opacity: .9; }
-  .quote .qb { padding: 22px 28px 26px; }
-  .quote .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-  .quote .fact { padding: 10px 12px; border: 1px solid #E5E7EB; border-radius: 10px; background: #F9FAFB; }
-  .quote .fact span { display: block; font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: #6B7280; margin-bottom: 3px; white-space: nowrap; }
-  .quote .fact b { font-size: 14px; font-weight: 600; white-space: nowrap; }
-  .quote table { width: 100%; border-collapse: collapse; }
-  .quote th { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: #6B7280; font-weight: 500; padding: 6px 4px; border-bottom: 1px solid #E5E7EB; text-align: right; }
-  .quote th:first-child { text-align: left; }
-  .quote td { padding: 10px 4px; border-bottom: 1px solid #F3F4F6; text-align: right; font-size: 14px; white-space: nowrap; }
-  .quote td:first-child { text-align: left; }
-  .quote td:first-child small { display: block; font-size: 11px; color: #6B7280; white-space: normal; }
-  .quote tr.grand td { border-top: 2px solid #16587B; border-bottom: none; padding-top: 14px; font-size: 20px; font-weight: 700; color: #16587B; }
-  .quote tr.grand td:first-child { font-size: 15px; color: #111827; }
-  .quote .qf { display: flex; justify-content: space-between; gap: 12px; margin-top: 16px; font-size: 11px; color: #6B7280; flex-wrap: wrap; }
-  .quote .qf b { color: #111827; font-weight: 600; }
-  .qactions { width: 640px; max-width: 100%; display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
-  .qactions .btn { background: #fff; color: #111827; border-color: #D1D5DB; }
   .overlay .wrap { display: flex; flex-direction: column; align-items: center; }
-  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; }
-  .toast.show { opacity: 1; }
+  .quote { width: 680px; max-width: 100%; background: #fff; color: #1C252E; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 48px 0 rgba(0,0,0,.3); font-variant-numeric: tabular-nums; }
+  .quote .qh { background: var(--dark-card); color: #fff; padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; }
+  .quote .qh .brand { display: flex; align-items: center; gap: 14px; }
+  .quote .qh .mark { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,.08); display: grid; place-items: center; }
+  .quote .qh .mark img { width: 28px; height: 28px; }
+  .quote .qh b { display: block; font-size: 18px; font-weight: 800; }
+  .quote .qh span { display: block; font-size: 12px; color: #94A3B8; }
+  .quote .qh .date { text-align: right; font-size: 12px; color: #94A3B8; }
+  .quote .qh .date b { font-size: 14px; font-weight: 700; color: #fff; }
+  .quote .qb { padding: 22px 28px 26px; }
+  .quote .ship { border: 1px solid #DFE3E8; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+  .quote .ship span { display: block; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: #637381; font-weight: 700; margin-bottom: 6px; }
+  .quote .ship div { display: flex; justify-content: space-between; font-size: 14px; padding: 3px 0; }
+  .quote .ship div b { font-weight: 700; }
+  .quote .ship div i { font-style: normal; color: #637381; font-size: 12px; }
+  .quote .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+  .quote .fact { padding: 10px 12px; border-radius: 10px; background: #F4F6F8; }
+  .quote .fact span { display: block; font-size: 10px; letter-spacing: .04em; text-transform: uppercase; color: #637381; font-weight: 700; margin-bottom: 3px; white-space: nowrap; }
+  .quote .fact b { font-size: 14px; font-weight: 700; white-space: nowrap; }
+  .quote th { background: #F4F6F8; color: #637381; }
+  .quote td { border-bottom: 1px dashed #DFE3E8; color: #1C252E; }
+  .quote td:first-child small { color: #637381; }
+  .quote tr.grand td { border-top: 2px solid #141A21; border-bottom: none; padding-top: 14px; font-size: 22px; font-weight: 800; color: #099E7F; }
+  .quote tr.grand td:first-child { font-size: 15px; color: #1C252E; }
+  .quote .qf { display: flex; justify-content: space-between; gap: 12px; margin-top: 16px; font-size: 11px; color: #637381; flex-wrap: wrap; }
+  .quote .qf b { color: #1C252E; font-weight: 700; }
+  .qactions { width: 680px; max-width: 100%; display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+  .qactions .btn { background: #fff; color: #1C252E; }
 </style>
 </head>
 <body>
@@ -143,14 +160,13 @@
         <h3>Shipment <small>what is moving</small></h3>
         <div class="body">
           <div class="field"><label>Destination</label><select id="dest"></select></div>
-          <div class="field"><label>Metal <small>drives the live spot price</small></label><select id="metal"><option value="gold">Gold</option><option value="silver">Silver</option><option value="platinum">Platinum</option></select></div>
-          <div class="field"><label>Units <small>coins / bars</small></label><input id="qty" type="number" min="0" step="1"></div>
-          <div class="field"><label>Weight per unit <small>grams. 31.1035 = 1 oz, 1000 = 1 kg bar</small></label><input id="unitG" type="number" min="0" step="0.0001"></div>
-          <div class="field calc"><label>Total weight <small>units × weight per unit</small></label><b id="totalKg">–</b></div>
-          <div class="field"><label>Unit price <small id="priceHint">live spot × unit weight</small></label><div class="prefix"><input id="price" type="number" min="0" step="1"></div></div>
+          <div class="sub-h">Lines <span style="font-weight:400;text-transform:none;letter-spacing:0">· gold and silver can share one shipment</span></div>
+          <div id="lines"></div>
+          <button class="add" id="addLine">+ Add line</button>
+          <div class="field calc" style="margin-top:8px"><label>Total weight <small>all lines</small></label><b id="totalKg">–</b></div>
           <div class="live" id="live">Fetching live spot…</div>
-          <div class="field"><label>Insure at <small>replacement uplift on top of spot</small></label>
-            <select id="uplift"><option value="0">Spot value</option><option value="gold">Gold +4.5%</option><option value="silver">Silver +8%</option></select></div>
+          <div class="sub-h">Options</div>
+          <div class="field chk"><label>Insure at replacement value <small>gold +4.5%, silver +8% on top of spot</small></label><button class="switch" id="replacement" role="switch" aria-checked="false"></button></div>
           <div class="field chk"><label>Admin fee <small>only if BRINKS opens / tampers with the package</small></label><button class="switch" id="admin" role="switch" aria-checked="true"></button></div>
           <div class="field chk"><label>Weight surcharge over 4 kg <small>not applied on local runs</small></label><button class="switch" id="surcharge" role="switch" aria-checked="false"></button></div>
           <div class="field chk"><label>VAT on insurance &amp; admin too <small>off = VAT on delivery only (sheet total)</small></label><button class="switch" id="vatAll" role="switch" aria-checked="false"></button></div>
@@ -175,7 +191,7 @@
             <tfoot><tr class="total"><td>Total delivery charge</td><td id="tEx"></td><td id="tVat"></td><td id="tInc"></td></tr></tfoot>
           </table>
           <div class="kpis" style="margin-top:16px;margin-bottom:0">
-            <div class="kpi"><span>Logistics cost</span><b id="kPct">–</b><span style="margin:4px 0 0;text-transform:none;letter-spacing:0">of spot value</span></div>
+            <div class="kpi hi"><span>Logistics cost</span><b id="kPct">–</b><span style="margin:4px 0 0;text-transform:none;letter-spacing:0;font-weight:400">of spot value</span></div>
             <div class="kpi"><span>Cost per unit</span><b id="kUnit">–</b></div>
           </div>
           <div class="note" id="note"></div>
@@ -185,7 +201,7 @@
     </div>
   </div>
 
-  <details class="card" style="margin-top:20px">
+  <details class="card" style="margin-top:24px">
     <summary>Rate card <small>from BRINKS CALCULATOR.xlsx. Edit when BRINKS changes prices. Saved in this browser.</small></summary>
     <div class="body">
       <div class="rates" id="rates"></div>
@@ -201,10 +217,11 @@
 <div class="overlay" id="overlay"><div class="wrap">
   <div class="quote" id="quote">
     <div class="qh">
-      <div class="brand"><div class="mark">SA</div><div><b>BRINKS delivery cost</b><span>SA Bullion · Inventory</span></div></div>
+      <div class="brand"><div class="mark"><img src="../assets/logo.svg" alt=""></div><div><b>BRINKS delivery cost</b><span>SA Bullion · Inventory</span></div></div>
       <div class="date" id="qDate"></div>
     </div>
     <div class="qb">
+      <div class="ship" id="qShip"></div>
       <div class="facts" id="qFacts"></div>
       <table><thead><tr><th>Line</th><th>Excl VAT</th><th>VAT</th><th>Incl VAT</th></tr></thead><tbody id="qRows"></tbody></table>
       <div class="qf" id="qFoot"></div>
@@ -225,37 +242,50 @@
     adminFee: 350,                                 // B35 / F23
     upliftGold: 4.5,                               // E32 "Replacement cost 4.50% (Gold)"
     upliftSilver: 8,                               // E34 "Replacement cost 8.00% (Silver)"
+    upliftPlatinum: 4.5,                           // NOT in the sheet: assumed same as gold until confirmed
     gramsPerOz: 31.1035,                           // B12
   };
   const RATE_LABELS = {
     vatPct: 'VAT %', surchargePerKg: 'Surcharge per kg over standard (R, excl VAT)', standardKg: 'Standard weight (kg)',
     liabilityPct: 'Liability / insurance rate (% of insured value)', adminFee: 'Admin fee (R)', upliftGold: 'Gold replacement uplift %',
-    upliftSilver: 'Silver replacement uplift %', gramsPerOz: 'Grams per troy oz',
+    upliftSilver: 'Silver replacement uplift %', upliftPlatinum: 'Platinum replacement uplift % (assumed)', gramsPerOz: 'Grams per troy oz',
   };
-  const DEFAULT_INPUTS = { dest: 'JHB', metal: 'gold', qty: 140, price: 73300, manualPrice: false, unitG: 31.1035, uplift: '0', admin: true, surcharge: false, vatAll: false };
+  const METALS = { gold: 'Gold', silver: 'Silver', platinum: 'Platinum' };
   const SYMBOL = { gold: 'XAU', silver: 'XAG', platinum: 'XPT' };   // api.gold-api.com symbols (USD per troy oz, free, no key)
+  const SIZES = { '1oz': { label: '1 oz', oz: 1 }, '1/2oz': { label: '1/2 oz', oz: .5 }, '1/4oz': { label: '1/4 oz', oz: .25 }, '1/10oz': { label: '1/10 oz', oz: .1 }, '1kg': { label: '1 kg bar', g: 1000 }, '100g': { label: '100 g bar', g: 100 }, 'custom': { label: 'Custom (g)' } };
+  const newLine = (metal = 'gold') => ({ metal, size: '1oz', customG: 0, qty: 0, price: 0, manual: false });
+  const DEFAULT_INPUTS = { dest: 'JHB', lines: [{ metal: 'gold', size: '1oz', customG: 0, qty: 140, price: 73300, manual: false }], replacement: false, admin: true, surcharge: false, vatAll: false };
 
   const $ = id => document.getElementById(id);
-  const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? { ...d, ...JSON.parse(v) } : { ...d }; } catch { return { ...d }; } };
+  const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? { ...d, ...JSON.parse(v) } : JSON.parse(JSON.stringify(d)); } catch { return JSON.parse(JSON.stringify(d)); } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
   let rates = load('courier.brinks.rates.v1', DEFAULT_RATES);
-  let inp = load('courier.brinks.inputs.v1', DEFAULT_INPUTS);
+  let inp = load('courier.brinks.inputs.v2', DEFAULT_INPUTS);
   rates.dest = { ...DEFAULT_RATES.dest, ...(rates.dest || {}) };
+  if (!Array.isArray(inp.lines) || !inp.lines.length) inp.lines = [newLine()];
 
   const R = n => 'R ' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const N = (n, d = 2) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const gramsOf = (l, r) => { const s = SIZES[l.size] || SIZES['1oz']; return s.oz ? s.oz * r.gramsPerOz : s.g ? s.g : (+l.customG || 0); };
+  const lineLabel = l => `${METALS[l.metal] || l.metal} ${l.size === 'custom' ? N(+l.customG || 0, 0) + ' g' : SIZES[l.size].label}`;
 
-  // ---------- The calculation (mirrors A11:B37 of the sheet, plus its two optional blocks) ----------
+  // ---------- The calculation (mirrors A11:B37 of the sheet; multi-line shipment sums spot, insured value and weight across lines) ----------
   function calc(i, r) {
-    const spot = i.qty * i.price;                                                   // B20 = B19*B18
-    const upliftPct = i.uplift === 'gold' ? r.upliftGold : i.uplift === 'silver' ? r.upliftSilver : 0;
-    const insured = spot * (1 + upliftPct / 100);                                   // F17 = B20 + B20*4.5%
-    const insurance = insured * r.liabilityPct / 100;                               // B21 = B20*A9/100
-    const totalKg = i.qty * i.unitG / 1000;                                         // B16
+    const uplift = { gold: r.upliftGold, silver: r.upliftSilver, platinum: r.upliftPlatinum };
+    const items = i.lines.map(l => {
+      const g = gramsOf(l, r), spot = (+l.qty || 0) * (+l.price || 0);
+      const insured = spot * (1 + (i.replacement ? (uplift[l.metal] || 0) : 0) / 100);          // F17 = B20 + B20*4.5% (when replacement is on)
+      return { ...l, g, kg: (+l.qty || 0) * g / 1000, spot, insured };
+    });
+    const spot = items.reduce((s, x) => s + x.spot, 0);                                      // B20 = B19*B18, summed over lines
+    const insured = items.reduce((s, x) => s + x.insured, 0);
+    const units = items.reduce((s, x) => s + (+x.qty || 0), 0);
+    const insurance = insured * r.liabilityPct / 100;                                        // B21 = B20*A9/100
+    const totalKg = items.reduce((s, x) => s + x.kg, 0);                                     // B16
     const excessKg = Math.max(0, Math.ceil(Math.round((totalKg - r.standardKg) * 1e6) / 1e6)); // B26 = ROUNDUP(B23-B24,0), floored at 0 (C28 note)
-    const delivery = r.dest[i.dest] ?? 0;                                           // B27 = flat rate for destination
-    const surcharge = i.surcharge ? excessKg * r.surchargePerKg : 0;                // B28 = B26*H5 (H5 is incl VAT; here excl, VAT added below)
-    const admin = i.admin ? r.adminFee : 0;                                         // B35
+    const delivery = r.dest[i.dest] ?? 0;                                                    // B27 = flat rate for destination
+    const surcharge = i.surcharge ? excessKg * r.surchargePerKg : 0;                         // B28 = B26*H5 (H5 incl VAT; here excl, VAT added below)
+    const admin = i.admin ? r.adminFee : 0;                                                  // B35
     const v = r.vatPct / 100;
     const lines = [
       { key: 'delivery',  label: 'Delivery',              sub: i.dest + ' flat rate',                                   ex: delivery,  vat: delivery * v, on: true },
@@ -264,82 +294,25 @@
       { key: 'admin',     label: 'Admin fee',             sub: i.admin ? 'package opened / tampered' : 'not charged',   ex: admin,     vat: i.vatAll ? admin * v : 0, on: i.admin },
     ];
     const ex = lines.reduce((s, l) => s + l.ex, 0), vat = lines.reduce((s, l) => s + l.vat, 0);
-    return { spot, insured, totalKg, excessKg, lines, ex, vat, total: ex + vat, pct: spot ? (ex + vat) / spot : 0, perUnit: i.qty ? (ex + vat) / i.qty : 0 };
+    return { items, units, spot, insured, totalKg, excessKg, lines, ex, vat, total: ex + vat, pct: spot ? (ex + vat) / spot : 0, perUnit: units ? (ex + vat) / units : 0 };
   }
 
-  // ---------- UI ----------
-  function buildDest() { $('dest').innerHTML = Object.keys(rates.dest).map(d => `<option>${d}</option>`).join(''); }
-  function buildRates() {
-    const box = $('rates'); box.innerHTML = '';
-    for (const [d, val] of Object.entries(rates.dest)) box.appendChild(rateField('dest.' + d, d + ' flat rate (R, excl VAT)', val));
-    for (const k of Object.keys(RATE_LABELS)) box.appendChild(rateField(k, RATE_LABELS[k], rates[k]));
-  }
-  function rateField(key, label, val) {
-    const div = document.createElement('div'); div.className = 'field';
-    div.innerHTML = `<label>${label}</label><input type="number" step="any" value="${val}" data-rate="${key}">`;
-    div.querySelector('input').oninput = e => {
-      const n = parseFloat(e.target.value); if (isNaN(n)) return;
-      if (key.startsWith('dest.')) rates.dest[key.slice(5)] = n; else rates[key] = n;
-      save('courier.brinks.rates.v1', rates); render();
-    };
-    return div;
-  }
-  function readInputs() {
-    inp = { dest: $('dest').value, metal: $('metal').value, qty: +$('qty').value || 0, price: +$('price').value || 0, manualPrice: !!inp.manualPrice,
-            unitG: +$('unitG').value || 0, uplift: $('uplift').value,
-            admin: $('admin').getAttribute('aria-checked') === 'true', surcharge: $('surcharge').getAttribute('aria-checked') === 'true', vatAll: $('vatAll').getAttribute('aria-checked') === 'true' };
-    save('courier.brinks.inputs.v1', inp);
-  }
-  function writeInputs() {
-    $('dest').value = inp.dest in rates.dest ? inp.dest : Object.keys(rates.dest)[0];
-    $('metal').value = inp.metal || 'gold';
-    $('qty').value = inp.qty; $('price').value = inp.price; $('unitG').value = inp.unitG; $('uplift').value = inp.uplift;
-    $('admin').setAttribute('aria-checked', inp.admin); $('surcharge').setAttribute('aria-checked', inp.surcharge); $('vatAll').setAttribute('aria-checked', inp.vatAll);
-  }
-  let last;
-  function render() {
-    readInputs(); const c = last = calc(inp, rates);
-    $('kSpot').textContent = R(c.spot); $('kInsured').textContent = R(c.insured);
-    $('kKg').textContent = N(c.totalKg, 2) + ' kg'; $('kExcess').textContent = c.excessKg + ' kg';
-    $('rows').innerHTML = c.lines.map(l => `<tr class="${l.on ? '' : 'off'}"><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td class="${l.vat ? '' : 'muted'}">${R(l.vat)}</td><td>${R(l.ex + l.vat)}</td></tr>`).join('');
-    $('tEx').textContent = R(c.ex); $('tVat').textContent = R(c.vat); $('tInc').textContent = R(c.total);
-    $('kPct').textContent = N(c.pct * 100, 4) + '%'; $('kUnit').textContent = R(c.perUnit);
-    $('stamp').textContent = new Date().toLocaleDateString('en-ZA');
-    $('totalKg').textContent = N(c.totalKg, 3) + ' kg';
-    $('priceHint').textContent = inp.manualPrice ? 'typed in by hand' : 'live spot × unit weight';
-    const notes = [];
-    if (c.excessKg > 0 && !inp.surcharge) notes.push(`<b>${c.excessKg} kg over the ${rates.standardKg} kg standard</b> but the surcharge is off. That matches the sheet for local runs. Switch it on if BRINKS bills weight on this route.`);
-    if (!inp.vatAll) notes.push(`VAT is on the delivery line only, as in the sheet's "Summary of Cost". Switch <b>VAT on insurance &amp; admin</b> on to VAT every line (the sheet's other block does that).`);
-    if (!rates.dest[inp.dest]) notes.push('No flat rate for this destination yet. Add it in the rate card.');
-    $('note').innerHTML = notes.join('<br>'); $('note').style.display = notes.length ? '' : 'none';
-  }
-  function summaryText() {
-    const c = last, i = inp;
-    const l = c.lines.filter(x => x.on).map(x => `${x.label.padEnd(24)} ${R(x.ex + x.vat).padStart(14)}`).join('\n');
-    return `BRINKS courier fee – ${new Date().toLocaleDateString('en-ZA')}\nDestination: ${i.dest}\nUnits: ${i.qty} @ ${R(i.price)} = spot ${R(c.spot)} (insured ${R(c.insured)})\nWeight: ${N(c.totalKg)} kg (${c.excessKg} kg over ${rates.standardKg} kg)\n\n${l}\n${'Total excl VAT'.padEnd(24)} ${R(c.ex).padStart(14)}\n${'VAT'.padEnd(24)} ${R(c.vat).padStart(14)}\n${'TOTAL incl VAT'.padEnd(24)} ${R(c.total).padStart(14)}\nLogistics cost: ${N(c.pct * 100, 4)}% of spot`;
-  }
-
-  // ---------- Live spot: USD/oz from api.gold-api.com, USD→ZAR from open.er-api.com (daily). Unit price = R/oz × unit weight in oz. ----------
-  let live = { usd: 0, zar: 0, at: null, err: '', metal: '' };
-  const oz = () => (inp.unitG || 0) / rates.gramsPerOz;
-  const livePerOz = () => live.usd * live.zar;
+  // ---------- Live spot: USD/oz per metal from api.gold-api.com, USD→ZAR from open.er-api.com (daily). Line price = R/oz × line weight in oz. ----------
+  let live = { usd: {}, zar: 0, at: null, err: '' };
+  const perOz = m => (live.usd[m] || 0) * live.zar;
+  const livePrice = l => perOz(l.metal) * gramsOf(l, rates) / rates.gramsPerOz;
   async function fetchLive() {
-    const metal = $('metal').value;
-    $('live').className = 'live'; $('live').textContent = 'Fetching live ' + metal + ' spot…';
+    $('live').className = 'live'; $('live').textContent = 'Fetching live spot…';
     try {
-      const [p, fx] = await Promise.all([
-        fetch('https://api.gold-api.com/price/' + SYMBOL[metal], { cache: 'no-store' }).then(r => r.json()),
-        fetch('https://open.er-api.com/v6/latest/USD').then(r => r.json()),
-      ]);
-      if (!p.price || !fx.rates?.ZAR) throw new Error('bad payload');
-      live = { usd: p.price, zar: fx.rates.ZAR, at: new Date(), err: '', metal };
-    } catch { live.err = 'Live spot unavailable. Type the price in by hand.'; }
+      const [au, ag, pt, fx] = await Promise.all(['XAU', 'XAG', 'XPT'].map(s => fetch('https://api.gold-api.com/price/' + s, { cache: 'no-store' }).then(r => r.json())).concat(fetch('https://open.er-api.com/v6/latest/USD').then(r => r.json())));
+      if (!au.price || !fx.rates?.ZAR) throw new Error('bad payload');
+      live = { usd: { gold: au.price, silver: ag.price, platinum: pt.price }, zar: fx.rates.ZAR, at: new Date(), err: '' };
+    } catch { live.err = 'Live spot unavailable. Type prices in by hand.'; }
     applyLive();
   }
   function applyLive() {
-    readInputs();
-    if (!inp.manualPrice && livePerOz()) $('price').value = Math.round(livePerOz() * oz() * 100) / 100;
-    renderLive(); render();
+    if (live.zar) for (const l of inp.lines) if (!l.manual) l.price = Math.round(livePrice(l) * 100) / 100;
+    renderLines(); renderLive(); render();
   }
   function renderLive() {
     const el = $('live');
@@ -347,45 +320,111 @@
     if (!live.at) return;
     const t = live.at.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' });
     el.className = 'live';
-    el.innerHTML = `<span class="pill ${inp.manualPrice ? 'manual' : ''}">${inp.manualPrice ? 'MANUAL' : 'LIVE'}</span>` +
-      `${live.metal} $${N(live.usd)}/oz × R${N(live.zar, 4)} = <b>${R(livePerOz())}/oz</b> · ${t}` +
-      (inp.manualPrice ? ` · <a id="useLive">Use live price</a>` : ` · <a id="liveRefresh">Refresh</a>`);
-    if ($('useLive')) $('useLive').onclick = () => { inp.manualPrice = false; applyLive(); };
-    if ($('liveRefresh')) $('liveRefresh').onclick = fetchLive;
+    el.innerHTML = `<span class="pill">LIVE</span> Au ${R(perOz('gold'))} · Ag ${R(perOz('silver'))} · Pt ${R(perOz('platinum'))} per oz · $/R ${N(live.zar, 2)} · ${t} · <a id="liveRefresh">Refresh</a>`;
+    $('liveRefresh').onclick = fetchLive;
+  }
+
+  // ---------- UI ----------
+  function buildDest() { $('dest').innerHTML = Object.keys(rates.dest).map(d => `<option>${d}</option>`).join(''); $('dest').value = inp.dest in rates.dest ? inp.dest : Object.keys(rates.dest)[0]; }
+  function buildRates() {
+    const box = $('rates'); box.innerHTML = '';
+    for (const [d, val] of Object.entries(rates.dest)) box.appendChild(rateField('dest.' + d, d + ' flat rate (R, excl VAT)', val));
+    for (const k of Object.keys(RATE_LABELS)) box.appendChild(rateField(k, RATE_LABELS[k], rates[k]));
+  }
+  function rateField(key, label, val) {
+    const div = document.createElement('div'); div.className = 'field';
+    div.innerHTML = `<label>${label}</label><input type="number" step="any" value="${val}">`;
+    div.querySelector('input').oninput = e => {
+      const n = parseFloat(e.target.value); if (isNaN(n)) return;
+      if (key.startsWith('dest.')) rates.dest[key.slice(5)] = n; else rates[key] = n;
+      save('courier.brinks.rates.v1', rates); applyLive();
+    };
+    return div;
+  }
+  function renderLines() {
+    const box = $('lines'); box.innerHTML = '';
+    inp.lines.forEach((l, idx) => {
+      const div = document.createElement('div'); div.className = 'line';
+      div.innerHTML = `
+        <div class="r1">
+          <select data-k="metal">${Object.entries(METALS).map(([k, v]) => `<option value="${k}" ${l.metal === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+          <select data-k="size">${Object.entries(SIZES).map(([k, v]) => `<option value="${k}" ${l.size === k ? 'selected' : ''}>${v.label}</option>`).join('')}</select>
+          <input data-k="qty" type="number" min="0" step="1" value="${l.qty}" placeholder="units">
+          <button class="x" title="Remove line" ${inp.lines.length === 1 ? 'disabled' : ''}>×</button>
+        </div>
+        ${l.size === 'custom' ? `<div class="custom"><span class="meta">Weight per unit (grams)</span><input data-k="customG" type="number" min="0" step="0.0001" value="${l.customG}"></div>` : ''}
+        <div class="r2">
+          <span class="meta">Unit price <span class="pill ${l.manual ? 'manual' : ''}">${l.manual ? 'MANUAL' : 'LIVE'}</span> ${l.manual && live.zar ? `<a class="useLive" style="color:var(--success-dark);cursor:pointer;text-decoration:underline">use live ${R(livePrice(l))}</a>` : ''}<br><b>${N((+l.qty || 0) * gramsOf(l, rates) / 1000, 3)} kg</b> · spot ${R((+l.qty || 0) * (+l.price || 0))}</span>
+          <div class="prefix"><input data-k="price" type="number" min="0" step="0.01" value="${l.price}"></div>
+        </div>`;
+      div.querySelectorAll('[data-k]').forEach(el => el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', e => {
+        const k = e.target.dataset.k; l[k] = e.target.type === 'number' ? +e.target.value : e.target.value;
+        if (k === 'price') { l.manual = true; render(); return; }
+        if ((k === 'metal' || k === 'size' || k === 'customG') && !l.manual && live.zar) l.price = Math.round(livePrice(l) * 100) / 100;
+        if (k === 'qty') { render(); const m = div.querySelector('.r2 .meta b'); if (m) m.textContent = N((+l.qty || 0) * gramsOf(l, rates) / 1000, 3) + ' kg'; return; }
+        renderLines(); render();
+      }));
+      const ul = div.querySelector('.useLive'); if (ul) ul.onclick = () => { l.manual = false; applyLive(); };
+      div.querySelector('.x').onclick = () => { inp.lines.splice(idx, 1); renderLines(); render(); };
+      box.appendChild(div);
+    });
+  }
+  function readOptions() {
+    inp.dest = $('dest').value;
+    for (const k of ['replacement', 'admin', 'surcharge', 'vatAll']) inp[k] = $(k).getAttribute('aria-checked') === 'true';
+  }
+  function writeOptions() { for (const k of ['replacement', 'admin', 'surcharge', 'vatAll']) $(k).setAttribute('aria-checked', !!inp[k]); }
+  let last;
+  function render() {
+    readOptions(); save('courier.brinks.inputs.v2', inp);
+    const c = last = calc(inp, rates);
+    $('kSpot').textContent = R(c.spot); $('kInsured').textContent = R(c.insured);
+    $('kKg').textContent = N(c.totalKg, 2) + ' kg'; $('kExcess').textContent = c.excessKg + ' kg'; $('totalKg').textContent = N(c.totalKg, 3) + ' kg';
+    $('rows').innerHTML = c.lines.map(l => `<tr class="${l.on ? '' : 'off'}"><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td class="${l.vat ? '' : 'muted'}">${R(l.vat)}</td><td>${R(l.ex + l.vat)}</td></tr>`).join('');
+    $('tEx').textContent = R(c.ex); $('tVat').textContent = R(c.vat); $('tInc').textContent = R(c.total);
+    $('kPct').textContent = N(c.pct * 100, 4) + '%'; $('kUnit').textContent = R(c.perUnit);
+    $('stamp').textContent = new Date().toLocaleDateString('en-ZA');
+    const notes = [];
+    if (c.excessKg > 0 && !inp.surcharge) notes.push(`<b>${c.excessKg} kg over the ${rates.standardKg} kg standard</b> but the surcharge is off. That matches the sheet for local runs. Switch it on if BRINKS bills weight on this route.`);
+    if (!inp.vatAll) notes.push(`VAT is on the delivery line only, as in the sheet's "Summary of Cost". Switch <b>VAT on insurance &amp; admin</b> on to VAT every line (the sheet's other block does that).`);
+    if (inp.replacement && inp.lines.some(l => l.metal === 'platinum')) notes.push('Platinum replacement uplift is not in the sheet. 4.5% (same as gold) is assumed. Confirm with BRINKS.');
+    $('note').innerHTML = notes.join('<br>'); $('note').style.display = notes.length ? '' : 'none';
+  }
+  const shipText = c => c.items.filter(x => x.qty > 0).map(x => `${x.qty} × ${lineLabel(x)}`).join(', ') || 'nothing yet';
+  function summaryText() {
+    const c = last, i = inp;
+    const ship = c.items.filter(x => x.qty > 0).map(x => `  ${x.qty} × ${lineLabel(x)} @ ${R(x.price)} = ${R(x.spot)}`).join('\n');
+    const l = c.lines.filter(x => x.on).map(x => `${x.label.padEnd(24)} ${R(x.ex + x.vat).padStart(14)}`).join('\n');
+    return `BRINKS courier fee – ${new Date().toLocaleDateString('en-ZA')}\nDestination: ${i.dest}\nShipment:\n${ship}\nSpot ${R(c.spot)} · insured ${R(c.insured)}\nWeight: ${N(c.totalKg)} kg (${c.excessKg} kg over ${rates.standardKg} kg)\n\n${l}\n${'Total excl VAT'.padEnd(24)} ${R(c.ex).padStart(14)}\n${'VAT'.padEnd(24)} ${R(c.vat).padStart(14)}\n${'TOTAL incl VAT'.padEnd(24)} ${R(c.total).padStart(14)}\nLogistics cost: ${N(c.pct * 100, 4)}% of spot`;
   }
 
   // ---------- Quote card (screenshot-ready) ----------
   function fillQuote() {
     const c = last, i = inp;
-    $('qDate').innerHTML = `<b>${new Date().toLocaleDateString('en-ZA', { day: '2-digit', month: 'short', year: 'numeric' })}</b><br>${new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}`;
-    const metal = i.metal.charAt(0).toUpperCase() + i.metal.slice(1);
+    $('qDate').innerHTML = `<b>${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</b><br>${new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })} · ${i.dest}`;
+    $('qShip').innerHTML = `<span>Shipment</span>` + c.items.filter(x => x.qty > 0).map(x => `<div><b>${x.qty} × ${lineLabel(x)}</b><i>@ ${R(x.price)}${x.manual ? '' : ' live'} · ${N(x.kg, 2)} kg · ${R(x.spot)}</i></div>`).join('');
     $('qFacts').innerHTML = [
-      ['Destination', i.dest], ['Shipment', `${i.qty} × ${metal} ${N(i.unitG, i.unitG % 1 ? 4 : 0)} g`],
-      ['Total weight', N(c.totalKg, 2) + ' kg'], ['Unit price', R(i.price) + (i.manualPrice ? '' : ' (live)')],
-      ['Spot value', R(c.spot)], ['Insured value', R(c.insured)],
-      ['Liability rate', N(rates.liabilityPct, 3) + '%'], ['Logistics cost', N(c.pct * 100, 4) + '% of spot'],
+      ['Total weight', N(c.totalKg, 2) + ' kg'], ['Spot value', R(c.spot)], ['Insured value', R(c.insured)], ['Liability rate', N(rates.liabilityPct, 3) + '%'],
     ].map(([k, v]) => `<div class="fact"><span>${k}</span><b>${v}</b></div>`).join('');
     $('qRows').innerHTML = c.lines.filter(l => l.on).map(l => `<tr><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td>${R(l.vat)}</td><td>${R(l.ex + l.vat)}</td></tr>`).join('') +
       `<tr><td>Subtotal</td><td>${R(c.ex)}</td><td>${R(c.vat)}</td><td>${R(c.total)}</td></tr>` +
       `<tr class="grand"><td>Total delivery charge<small>incl. VAT</small></td><td></td><td></td><td>${R(c.total)}</td></tr>`;
-    $('qFoot').innerHTML = `<div>Cost per unit <b>${R(c.perUnit)}</b></div><div>${i.surcharge ? 'Weight surcharge applied' : 'No weight surcharge (local run)'} · ${i.vatAll ? 'VAT on all lines' : 'VAT on delivery only'}</div><div>Rates: BRINKS CALCULATOR.xlsx</div>`;
+    $('qFoot').innerHTML = `<div>Logistics cost <b>${N(c.pct * 100, 4)}%</b> of spot · per unit <b>${R(c.perUnit)}</b></div><div>${i.replacement ? 'Insured at replacement value' : 'Insured at spot'} · ${i.surcharge ? 'weight surcharge applied' : 'no weight surcharge (local run)'} · ${i.vatAll ? 'VAT on all lines' : 'VAT on delivery only'}</div>`;
   }
   $('quoteBtn').onclick = () => { fillQuote(); $('overlay').classList.add('on'); };
   $('qClose').onclick = () => $('overlay').classList.remove('on');
   $('overlay').onclick = e => { if (e.target === $('overlay')) $('overlay').classList.remove('on'); };
 
-  buildDest(); buildRates(); writeInputs(); render();
-  for (const id of ['dest', 'qty', 'uplift']) $(id).addEventListener('input', render);
-  $('unitG').addEventListener('input', applyLive);                      // unit weight changes the live unit price
-  $('metal').addEventListener('change', fetchLive);
-  $('price').addEventListener('input', () => { inp.manualPrice = true; renderLive(); render(); });
-  for (const id of ['admin', 'surcharge', 'vatAll']) $(id).onclick = e => { e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
-  $('reset').onclick = () => { inp = { ...DEFAULT_INPUTS }; writeInputs(); applyLive(); };
-  fetchLive().then(() => { if (new URLSearchParams(location.search).has('quote')) $('quoteBtn').click(); });   // ?quote opens the card (previews)
-  setInterval(fetchLive, 5 * 60 * 1000);                                  // refresh every 5 minutes while the page is open
-  $('resetRates').onclick = () => { rates = JSON.parse(JSON.stringify(DEFAULT_RATES)); save('courier.brinks.rates.v1', rates); buildDest(); buildRates(); writeInputs(); render(); };
+  buildDest(); buildRates(); writeOptions(); renderLines(); render();
+  $('dest').addEventListener('change', render);
+  for (const id of ['replacement', 'admin', 'surcharge', 'vatAll']) $(id).onclick = e => { e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
+  $('addLine').onclick = () => { const l = newLine(inp.lines.some(x => x.metal === 'gold') ? 'silver' : 'gold'); if (live.zar) l.price = Math.round(livePrice(l) * 100) / 100; inp.lines.push(l); renderLines(); render(); };
+  $('reset').onclick = () => { inp = JSON.parse(JSON.stringify(DEFAULT_INPUTS)); buildDest(); writeOptions(); applyLive(); };
+  $('resetRates').onclick = () => { rates = JSON.parse(JSON.stringify(DEFAULT_RATES)); save('courier.brinks.rates.v1', rates); buildDest(); buildRates(); applyLive(); };
   $('copy').onclick = async () => { try { await navigator.clipboard.writeText(summaryText()); toast('Summary copied'); } catch { toast('Copy blocked by browser'); } };
   function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }
+  fetchLive().then(() => { if (new URLSearchParams(location.search).has('quote')) $('quoteBtn').click(); });   // ?quote opens the card (previews)
+  setInterval(fetchLive, 5 * 60 * 1000);                                  // refresh every 5 minutes while the page is open
 
   // Courier tabs
   document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
