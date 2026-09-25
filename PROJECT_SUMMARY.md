@@ -100,3 +100,27 @@ Photos instead. Any future embedded app that uses the File System Access API nee
 - Share the link with Zubayr and Angie; retire the old Stock Take URL on the personal account.
 - Optional: single shared login across Proof + Stock Take (both use the same name+PIN pattern).
 - Optional: Merino cream (#F5EEDD) page background variant — Abdullah preferred white for now.
+
+## RAM calculator (2026-09-25)
+Source: `abdullahs storage\15. RAM\RAM Insurance\RAM_Courier_Calculator.xlsx` (Calculator + RateCard tabs)
+and `RAM Tranfers Insurance Cover.xlsx`. Pure `ramCalc()` sits between `@@RAM-CALC-START/END` markers
+in `courier/index.html`; rates in `RAM_RATES` with cell refs. Reproduces the workbook example
+(ISA → CPT, 4 kg, R1,026,000 insured) to the cent: R17,205.66. 25-check Node test `test_ram.mjs`
+(session scratchpad). Direct link: `courier/?tab=ram`.
+
+Logic: base charge (route table: minimum up to min kg, then per kg or part above; or typed from a
+RAM quote when the table says R0/TBC) + fuel 49.16% of base + waybill R29.20 + armoured vehicle
+(chosen, or automatic above R150k insured) + face to face 1.3961% of AV + insurance 0.4% of insured
+value + optional Part 108 R70 / Saturday R137.15 / after hours R525, then 15% VAT. Client pricing
+card: fixed or % mark-up. Own-vehicle card: 0.035% per movement, capped at R5m cover.
+
+**Differences from the workbook, on purpose:** Part 108 is a switch (workbook hard-codes R0);
+Saturday and after-hours use the RAM rate card PDF values (workbook has R0); the route table actually
+drives the base charge (workbook's F4 is typed). **Open questions for Abdullah:** RAM rate card PDF
+expired 2026-08-31 and shows fuel 46.80%, waybill R4.20, AV R6,000 vs the workbook's quote-based
+49.16% / R29.20 / R8,725–9,249; ISA → CPT and CPT → PTA still on the old R8,725.58 AV rate; most
+routes have no base rate yet (TBC).
+
+## Logo (2026-09-25)
+`assets/logo.svg`: circle + two vertical ticks + letter-spaced INVENTORY, from Abdullah's image.
+Used as a CSS mask (white on the dark strip), favicon, and in the quote card headers.
