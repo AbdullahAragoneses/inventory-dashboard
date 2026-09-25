@@ -42,7 +42,7 @@
   .sidebar.closed { width: var(--w-mini); }
   .strip { height: 68px; flex-shrink: 0; background: var(--nav-strip); display: flex; align-items: center; gap: 12px; padding: 0 24px; color: #fff; }
   .sidebar.closed .strip { padding: 0; justify-content: center; }
-  .logo { width: 32px; height: 32px; flex-shrink: 0; }
+  .logo { width: 46px; height: 46px; flex-shrink: 0; color: #fff; background: currentColor; -webkit-mask: url(assets/logo.svg) center / contain no-repeat; mask: url(assets/logo.svg) center / contain no-repeat; }
   .brand { font-weight: 700; font-size: 15px; white-space: nowrap; line-height: 1.2; }
   .brand small { display: block; font-size: 11px; font-weight: 500; opacity: .7; }
   .sidebar.closed .brand { display: none; }
@@ -133,7 +133,7 @@
 <body>
 <div class="app">
   <nav class="sidebar" id="sidebar">
-    <div class="strip"><img class="logo" src="assets/logo.svg" alt=""><div class="brand">SA Bullion<small>Inventory</small></div></div>
+    <div class="strip"><span class="logo" aria-hidden="true"></span><div class="brand">SA Bullion<small>Inventory</small></div></div>
     <button class="toggle" id="hideBtn" title="Collapse / expand menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
     <div class="options" id="options"></div>
     <div class="avatar" title="Abdullah Aragoneses">A</div>
