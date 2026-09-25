@@ -217,7 +217,8 @@
       <div class="card">
         <h3>Shipment <small>account AURU02 · valuable cargo</small></h3>
         <div class="body">
-          <div class="field"><label>Route</label><select id="rRoute"></select></div>
+          <div class="field" style="grid-template-columns:1fr 260px"><label>Collect from <small>RAM hub</small></label><select id="rFrom"></select></div>
+          <div class="field" style="grid-template-columns:1fr 260px"><label>Deliver to <small>RAM hub</small></label><select id="rTo"></select></div>
           <div class="field"><label>Actual weight <small>kg</small></label><input id="rKg" type="number" min="0" step="0.01"></div>
           <div class="field" style="grid-template-columns:1fr 210px"><label>Box size <small>L × W × H, cm</small></label>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"><input id="rL" type="number" min="0" step="1" style="padding:0 6px;text-align:center"><input id="rW" type="number" min="0" step="1" style="padding:0 6px;text-align:center"><input id="rH" type="number" min="0" step="1" style="padding:0 6px;text-align:center"></div></div>
@@ -226,12 +227,13 @@
           <div class="field"><label>Base charge <small id="rBaseHint"></small></label><div class="prefix"><input id="rBase" type="number" min="0" step="0.01"></div></div>
           <div class="live" id="rBaseNote"></div>
           <div class="sub-h">Value</div>
-          <div class="field"><label>Insured value <small>armoured vehicle is automatic above <span id="rAvLimit"></span></small></label><div class="prefix"><input id="rValue" type="number" min="0" step="1"></div></div>
+          <div class="field"><label>Shipment value <small>what the parcel is worth</small></label><div class="prefix"><input id="rValue" type="number" min="0" step="1"></div></div>
           <div class="sub-h">Options</div>
-          <div class="field chk"><label>Armoured vehicle <small id="rAvHint">choose it, or it switches on by itself above the limit</small></label><button class="switch" id="rAv" role="switch" aria-checked="true"></button></div>
-          <div class="field chk"><label>Face to face <small>% of the armoured vehicle surcharge</small></label><button class="switch" id="rF2f" role="switch" aria-checked="true"></button></div>
-          <div class="field chk"><label>Insured with liability <small>RAM insurance on the insured value</small></label><button class="switch" id="rIns" role="switch" aria-checked="true"></button></div>
-          <div class="field chk"><label>Part 108 surcharge <small>regulatory fee; the workbook leaves it at R0</small></label><button class="switch" id="rP108" role="switch" aria-checked="false"></button></div>
+          <div class="field chk"><label id="rAvLbl">Armoured vehicle</label><button class="switch" id="rAv" role="switch" aria-checked="true"></button></div>
+          <div class="live" id="rAvNote" style="margin-top:-2px;padding-bottom:8px"></div>
+          <div class="field chk"><label>Face to face <small>flat fee; Mandre: always add it</small></label><button class="switch" id="rF2f" role="switch" aria-checked="true"></button></div>
+          <div class="field chk"><label>Part 108 <small>known-shipper fee; Mandre: always add it</small></label><button class="switch" id="rP108" role="switch" aria-checked="true"></button></div>
+          <div class="field chk"><label>Liability cover <small>0.4% of value; needs RAM sign-off</small></label><button class="switch" id="rIns" role="switch" aria-checked="false"></button></div>
           <div class="field chk"><label>Saturday delivery</label><button class="switch" id="rSat" role="switch" aria-checked="false"></button></div>
           <div class="field chk"><label>After hours</label><button class="switch" id="rAfter" role="switch" aria-checked="false"></button></div>
           <div class="actions"><button class="btn" id="rReset">Reset inputs</button></div>
@@ -244,10 +246,10 @@
         <h3>Cost breakdown <small id="rStamp"></small></h3>
         <div class="body">
           <div class="kpis">
-            <div class="kpi"><span>Insured value</span><b id="rkValue">–</b></div>
+            <div class="kpi"><span>Shipment value</span><b id="rkValue">–</b></div>
             <div class="kpi"><span>Chargeable weight</span><b id="rkKg">–</b></div>
             <div class="kpi"><span>Fuel surcharge</span><b id="rkFuel">–</b></div>
-            <div class="kpi"><span>Armoured vehicle</span><b id="rkAv">–</b></div>
+            <div class="kpi"><span id="rkAvLbl">Armoured vehicle</span><b id="rkAv">–</b></div>
           </div>
           <table>
             <thead><tr><th>Line</th><th>Excl VAT</th></tr></thead>
@@ -284,15 +286,15 @@
   </div>
 
   <details class="card" style="margin-top:24px">
-    <summary>Rate card <small>from RAM_Courier_Calculator.xlsx. Edit when RAM changes prices. Saved in this browser.</small></summary>
+    <summary>Rate card <small>from 24 RAM quotes in Outlook, Sep 2024 to Aug 2026. Edit when RAM changes prices. Saved in this browser.</small></summary>
     <div class="body">
-      <div class="sub-h">Monthly and fixed rates</div>
+      <div class="sub-h">Surcharges</div>
       <div class="rates" id="rRates"></div>
-      <div class="sub-h">Routes <span style="font-weight:400;text-transform:none;letter-spacing:0">· R0 base means RAM has not quoted it yet; type the base charge from their quote</span></div>
-      <div style="overflow-x:auto"><table id="rRouteTable"></table></div>
+      <div class="sub-h">Base charge by chargeable weight <span style="font-weight:400;text-transform:none;letter-spacing:0">· RAM prices valuable cargo by weight, not by route. Weights between points are estimated.</span></div>
+      <div style="overflow-x:auto"><table id="rBandTable"></table></div>
       <div class="sub-h">Fuel surcharge history</div>
       <div class="live" id="rFuelHist"></div>
-      <div class="actions"><button class="btn" id="rResetRates">Reset to workbook values</button></div>
+      <div class="actions"><button class="btn" id="rResetRates">Reset to quote values</button></div>
     </div>
   </details>
 </div>
@@ -528,74 +530,101 @@
 
 <script>
   // ================= RAM =================
-  // Source: 15. RAM\RAM Insurance\RAM_Courier_Calculator.xlsx (tabs Calculator + RateCard) and
-  //         15. RAM\RAM Insurance\RAM Tranfers Insurance Cover.xlsx (own-vehicle cover). Cell refs in comments.
+  // Built from 24 RAM quotes on account AURU02 in Outlook (Mandre Pretorius, Peter van der Berg, Abram Maboa,
+  // Odette Strydom; Sep 2024 to Aug 2026), plus 15. RAM\RAM Insurance\RAM_Courier_Calculator.xlsx and
+  // RAM Tranfers Insurance Cover.xlsx. What the quotes show:
+  //   * valuable-cargo base charge depends on chargeable weight, not on route (same R1,883.11 local, regional, Durban)
+  //   * RAM put prices up 6% in April 2026 (e.g. R1,776.55 -> R1,883.11); fuel % moves monthly
+  //   * face to face is a flat fee and is charged with or without an armoured vehicle
+  //   * Part 108 applies because SA Bullion is a known shipper (Mandre, 31 Aug 2026)
+  //   * armoured vehicle waived under R1m when collected and delivered in the same city, JHB or CPT (Odette, 13 Nov 2025)
+  //   * no armoured vehicle in East London: RAM bills an armed escort at the same price
   // @@RAM-CALC-START
-  const RAM_RATES = {
-    fuelPct: 49.16,          // RateCard!C3 = 0.4916 (April 2026, confirmed by CPT→NLS quote 101579). Applied to the base charge.
-    waybill: 29.20,          // RateCard!C8, per shipment
-    part108: 70,             // RateCard!C9 (the Calculator hard-codes F9 = 0, so it is a switch here, off by default)
-    f2fPct: 1.3961,          // RateCard!C10, % of the armoured vehicle surcharge
-    insPct: 0.4,             // RateCard!C11, % of insured value
-    vatPct: 15,              // RateCard!C12
-    volDivisor: 5000,        // RateCard!C7, cm³ per kg
-    avLimit: 150000,         // Calculator!B12 "auto if > R150k"
-    saturday: 137.15,        // RAM rate card PDF (workbook has R0, which would under-quote)
-    afterHours: 525,         // RAM rate card PDF (workbook has R0)
-    ownInsPct: 0.035,        // Transfers Insurance Cover C13: 0.035% per movement (Odette Strydom, 02/04/2026)
-    ownMax: 5000000,         // C15: max cover per own-vehicle movement; above this RAM armoured vehicle is required
-    routes: {                // RateCard!C15:K19  { min kg, base at min, per kg above min, AV surcharge }
-      'ISA → PTA (SD)': { min: 2, base: 1085.56, perKg: 153.37, av: 9249.11 },
-      'ISA → PTA (ND)': { min: 2, base: 275.60,  perKg: 0, av: 9249.11 },
-      'ISA → ISA':      { min: 2, base: 0,       perKg: 0, av: 9249.11 },
-      'ISA → NLS':      { min: 2, base: 738.24,  perKg: 0, av: 9249.11 },
-      'ISA → CPT':      { min: 2, base: 0,       perKg: 0, av: 8725.58 },
-      'CPT → CPT':      { min: 2, base: 1085.56, perKg: 0, av: 9249.11 },
-      'CPT → PTA':      { min: 2, base: 0,       perKg: 0, av: 8725.58 },
-      'CPT → NLS':      { min: 2, base: 738.24,  perKg: 0, av: 9249.11 },
-      'Custom Route':   { min: 2, base: 0,       perKg: 0, av: 0 },
-    },
+  const RAM_HUBS = {   // code: [name, city group for the same-city waiver]
+    ISA: ['Isando (Bedfordview, Germiston, OR Tambo)', 'JHB'], JHB: ['Johannesburg', 'JHB'], PTA: ['Pretoria', 'PTA'],
+    CPT: ['Cape Town (incl. Hermanus)', 'CPT'], DBN: ['Durban (incl. Gillitts, Umhlanga, Ballito)', 'DBN'], PMB: ['Pietermaritzburg', 'PMB'],
+    NLS: ['Nelspruit / Lowveld (incl. White River)', 'NLS'], BLM: ['Bloemfontein', 'BLM'], ELS: ['East London (incl. Dordrecht)', 'ELS'],
+    PLZ: ['Port Elizabeth', 'PLZ'], GRG: ['George', 'GRG'], KIM: ['Kimberley', 'KIM'], RCB: ['Richards Bay', 'RCB'],
+    RUS: ['Rustenburg', 'RUS'], WIT: ['Witbank', 'WIT'],
   };
-  const RAM_FUEL_HISTORY = [['Sep 2025', 46.88], ['Oct 2025', 46.89], ['Jan 2026', 45.91], ['Feb 2026', 45.12], ['Mar 2026', 45.38], ['Apr 2026', 49.16]];   // RateCard!B24:C29
-  // Workbook example (Calculator!C4:C25): ISA → CPT, 4 kg, 30×20×10 cm, base typed as R1,328, R1,026,000 insured → R17,205.66
-  const RAM_DEFAULT_INPUTS = { route: 'ISA → CPT', kg: 4, l: 30, w: 20, h: 10, base: 1328, manualBase: true, value: 1026000,
-                               av: true, f2f: true, ins: true, p108: false, sat: false, after: false, mk: 'fixed', mkVal: 0, ownValue: 4999999 };
+  const RAM_RATES = {
+    fuelPct: 51.73,          // latest: quote 31 Aug 2026. Applied to the base charge.
+    waybill: 29.20,          // every quote since Apr 2026 (R27.55 before)
+    av: 9249.11,             // armoured vehicle, every quote since Apr 2026 (R8,725.58 before)
+    f2f: 129.13,             // face to face, flat, since Apr 2026 (R121.82 before)
+    part108: 70,             // every quote
+    insPct: 0.4,             // liability, % of value
+    insMin: 50,              // quote 19 May 2026: R10,000 insured gave R50.00, so a minimum premium
+    vatPct: 15,
+    volDivisor: 5000,        // quotes and rate card (demand services)
+    avLimit: 150000,         // armoured vehicle needed above this value (workbook rule)
+    waiverLimit: 1000000,    // same-city JHB or CPT under this value: no armoured vehicle (Odette 13 Nov 2025)
+    policyAvLimit: 5000000,  // our specie policy: movements over R5m must use an armoured vehicle
+    saturday: 137.15, afterHours: 525,   // RAM rate card PDF
+    ownInsPct: 0.035, ownMax: 5000000,   // own-vehicle cover, RAM Tranfers Insurance Cover.xlsx
+    bands: [                 // base charge by chargeable kg (current price period)
+      { kg: 2.4, base: 1048.01, src: 'RAM quotes 4 Jun and 31 Aug 2026' },
+      { kg: 7.2, base: 1883.11, src: 'RAM quotes Apr to Aug 2026 (6 quotes)' },
+      { kg: 9.6, base: 2217.19, src: '2025 quote R2,091.69 plus the 6% increase' },
+      { kg: 20,  base: 4054.46, src: '2025 quotes R3,824.96 plus the 6% increase' },
+    ],
+  };
+  const RAM_FUEL_HISTORY = [['Sep 2024', 47.17], ['Sep 2025', 46.88], ['Oct 2025', 46.89], ['Nov 2025', 46.30], ['Dec 2025', 46.64], ['Jan 2026', 45.91], ['Feb 2026', 45.12],
+                            ['Mar 2026', 45.38], ['Apr 2026', 49.16], ['May 2026', 52.68], ['Jun 2026', 54.03], ['Aug 2026', 51.73]];
+  // Default = RAM's latest quote (31 Aug 2026, Bedfordview to Gillitts, 2 kg, R950,000, with liability): R17,097.73
+  const RAM_DEFAULT_INPUTS = { from: 'ISA', to: 'DBN', kg: 2, l: 30, w: 20, h: 20, base: 0, manualBase: false, value: 950000,
+                               avOverride: null, f2f: true, p108: true, ins: true, sat: false, after: false, mk: 'fixed', mkVal: 0, ownValue: 4999999 };
 
-  // Base charge from the route table: minimum charge up to the minimum weight, then per kg (or part) above it.
-  // The workbook never wires this up (Calculator!F4 is typed); the per-kg rounding is an assumption.
-  function ramTableBase(route, chargeKg) {
-    if (!route || !route.base) return 0;
-    return route.base + Math.max(0, Math.ceil(Math.round((chargeKg - route.min) * 1e6) / 1e6)) * (route.perKg || 0);
+  // Base charge from the weight bands: exact on a quoted point, estimated in between (straight line), flat below the first point.
+  function ramBandBase(bands, kg) {
+    const b = [...bands].sort((x, y) => x.kg - y.kg);
+    if (!b.length) return { base: 0, kind: 'none' };
+    if (kg <= b[0].kg + 1e-9) return { base: b[0].base, kind: 'quote', src: b[0].src };
+    for (let i = 1; i < b.length; i++) {
+      if (Math.abs(kg - b[i].kg) < 1e-9) return { base: b[i].base, kind: 'quote', src: b[i].src };
+      if (kg < b[i].kg) { const t = (kg - b[i - 1].kg) / (b[i].kg - b[i - 1].kg); return { base: b[i - 1].base + t * (b[i].base - b[i - 1].base), kind: 'estimate' }; }
+    }
+    const [p, q] = b.length > 1 ? [b[b.length - 2], b[b.length - 1]] : [b[0], b[0]];
+    const slope = q.kg > p.kg ? (q.base - p.base) / (q.kg - p.kg) : 0;
+    return { base: q.base + (kg - q.kg) * slope, kind: 'estimate' };
   }
   function ramCalc(i, r) {
-    const route = r.routes[i.route] || { min: 0, base: 0, perKg: 0, av: 0 };
-    const vol = (+i.l || 0) * (+i.w || 0) * (+i.h || 0) / r.volDivisor;                         // C9
-    const chargeKg = Math.max(+i.kg || 0, vol);                                                   // C10
-    const tableBase = ramTableBase(route, chargeKg);
-    const base = i.manualBase ? (+i.base || 0) : tableBase;                                        // F4
+    const vol = (+i.l || 0) * (+i.w || 0) * (+i.h || 0) / r.volDivisor;
+    const chargeKg = Math.max(+i.kg || 0, vol);
+    const band = ramBandBase(r.bands, chargeKg);
+    const base = Math.round((i.manualBase ? (+i.base || 0) : band.base) * 100) / 100;
     const value = +i.value || 0;
-    const avAuto = value > r.avLimit, avOn = !!i.av || avAuto;                                     // F7 condition
-    const fuel = base * r.fuelPct / 100;                                                           // F5 = F4*C3
-    const av = avOn ? route.av : 0;                                                                // F7
-    const f2f = i.f2f ? av * r.f2fPct / 100 : 0;                                                   // F8 = F7*C10
-    const ins = i.ins ? value * r.insPct / 100 : 0;                                                // F10 = C15*C11
+    const gFrom = (RAM_HUBS[i.from] || [])[1], gTo = (RAM_HUBS[i.to] || [])[1];
+    const sameCity = gFrom && gFrom === gTo && (gFrom === 'JHB' || gFrom === 'CPT');
+    const waived = sameCity && value < r.waiverLimit;
+    const policyForces = value > r.policyAvLimit;
+    const avAuto = policyForces || (value > r.avLimit && !waived);
+    const avReason = policyForces ? `value over ${R(r.policyAvLimit)}: our policy requires it`
+      : waived ? `waived: same city (${gFrom}) and under ${R(r.waiverLimit)}`
+      : value > r.avLimit ? `value over ${R(r.avLimit)}` : `value under ${R(r.avLimit)}`;
+    const avOn = i.avOverride === null || i.avOverride === undefined ? avAuto : !!i.avOverride;
+    const escort = i.from === 'ELS' || i.to === 'ELS';
+    const c2 = n => Math.round(n * 100) / 100;                          // RAM rounds every line to the cent
+    const fuel = c2(base * r.fuelPct / 100);
+    const av = avOn ? r.av : 0;
+    const ins = i.ins ? c2(Math.max(r.insMin, value * r.insPct / 100)) : 0;
+    const avName = escort ? 'Escort vehicle' : 'Armoured vehicle';
     const lines = [
-      { label: 'Base charge',              sub: `${i.route} · ${N(chargeKg, 2)} kg chargeable`, ex: base, on: true },
-      { label: 'Fuel surcharge',           sub: N(r.fuelPct, 2) + '% of base',                   ex: fuel, on: true },
-      { label: 'Waybill surcharge',        sub: 'per shipment',                                   ex: r.waybill, on: true },
-      { label: 'Armoured vehicle',         sub: avOn ? (avAuto && !i.av ? 'automatic: value over ' + R(r.avLimit) : 'selected') : 'not used', ex: av, on: avOn },
-      { label: 'Face to face',             sub: N(r.f2fPct, 4) + '% of armoured vehicle',          ex: f2f, on: !!i.f2f && avOn },
-      { label: 'Part 108 surcharge',       sub: 'regulatory',                                     ex: i.p108 ? r.part108 : 0, on: !!i.p108 },
-      { label: 'Insurance premium',        sub: N(r.insPct, 2) + '% of ' + R(value),              ex: ins, on: !!i.ins },
-      { label: 'Saturday surcharge',       sub: 'RAM rate card',                                  ex: i.sat ? r.saturday : 0, on: !!i.sat },
-      { label: 'After hours surcharge',    sub: 'RAM rate card',                                  ex: i.after ? r.afterHours : 0, on: !!i.after },
+      { label: 'Base charge',       sub: `${N(chargeKg, 2)} kg chargeable` + (i.manualBase ? ' · typed from quote' : band.kind === 'estimate' ? ' · estimated' : ''), ex: base, on: true },
+      { label: 'Fuel surcharge',    sub: N(r.fuelPct, 2) + '% of base',    ex: fuel, on: true },
+      { label: 'Waybill surcharge', sub: 'per shipment',                   ex: r.waybill, on: true },
+      { label: avName,              sub: avOn ? (escort ? 'no armoured vehicle in East London' : avReason) : avReason, ex: av, on: avOn },
+      { label: 'Face to face',      sub: 'flat fee',                       ex: i.f2f ? r.f2f : 0, on: !!i.f2f },
+      { label: 'Part 108',          sub: 'known shipper',                  ex: i.p108 ? r.part108 : 0, on: !!i.p108 },
+      { label: 'Liability cover',   sub: N(r.insPct, 2) + '% of ' + R(value) + ` (min ${R(r.insMin)})`, ex: ins, on: !!i.ins },
+      { label: 'Saturday',          sub: 'RAM rate card',                  ex: i.sat ? r.saturday : 0, on: !!i.sat },
+      { label: 'After hours',       sub: 'RAM rate card',                  ex: i.after ? r.afterHours : 0, on: !!i.after },
     ];
-    const sub = lines.reduce((s, l) => s + l.ex, 0);                                               // F13
-    const vat = sub * r.vatPct / 100;                                                              // F14
-    const markup = i.mk === 'pct' ? sub * (+i.mkVal || 0) / 100 : (+i.mkVal || 0);                 // F24 (percentage typed as 10 for 10%)
-    const clientEx = sub + markup, clientVat = clientEx * r.vatPct / 100;                          // F25, F26
-    const ownCost = Math.min(+i.ownValue || 0, r.ownMax) * r.ownInsPct / 100;                      // Transfers D19
-    return { route, vol, chargeKg, tableBase, base, value, avOn, avAuto, fuel, av, lines, sub, vat, total: sub + vat,
+    const sub = lines.reduce((s, l) => s + l.ex, 0), vat = sub * r.vatPct / 100;
+    const markup = i.mk === 'pct' ? sub * (+i.mkVal || 0) / 100 : (+i.mkVal || 0);
+    const clientEx = sub + markup, clientVat = clientEx * r.vatPct / 100;
+    const ownCost = Math.min(+i.ownValue || 0, r.ownMax) * r.ownInsPct / 100;
+    return { vol, chargeKg, band, base, value, sameCity, waived, avAuto, avOn, avReason, escort, avName, fuel, av, lines, sub, vat, total: sub + vat,
              markup, clientEx, clientVat, clientTotal: clientEx + clientVat, markupPct: sub ? markup / sub : 0,
              ownCost, ownVat: ownCost * r.vatPct / 100, ownTotal: ownCost * (1 + r.vatPct / 100), ownOver: (+i.ownValue || 0) > r.ownMax };
   }
@@ -603,48 +632,52 @@
 
   (() => {
     const $ = id => document.getElementById(id);
-    const R = n => 'R ' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const clone = o => JSON.parse(JSON.stringify(o));
     const get = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : clone(d); } catch { return clone(d); } };
     const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-    let rates = get('courier.ram.rates.v1', RAM_RATES);
-    rates = { ...clone(RAM_RATES), ...rates, routes: { ...clone(RAM_RATES.routes), ...(rates.routes || {}) } };
-    let inp = { ...clone(RAM_DEFAULT_INPUTS), ...get('courier.ram.inputs.v1', RAM_DEFAULT_INPUTS) };
-    const SW = ['av', 'f2f', 'ins', 'p108', 'sat', 'after'];
-    const swId = k => 'r' + { av: 'Av', f2f: 'F2f', ins: 'Ins', p108: 'P108', sat: 'Sat', after: 'After' }[k];
+    let rates = { ...clone(RAM_RATES), ...get('courier.ram.rates.v2', RAM_RATES) };
+    if (!Array.isArray(rates.bands) || !rates.bands.length) rates.bands = clone(RAM_RATES.bands);
+    let inp = { ...clone(RAM_DEFAULT_INPUTS), ...get('courier.ram.inputs.v2', RAM_DEFAULT_INPUTS) };
+    const SW = { f2f: 'rF2f', p108: 'rP108', ins: 'rIns', sat: 'rSat', after: 'rAfter' };
+    const NUM = [['rKg', 'kg'], ['rL', 'l'], ['rW', 'w'], ['rH', 'h'], ['rValue', 'value'], ['rMkVal', 'mkVal'], ['oValue', 'ownValue']];
     let last;
 
-    function buildRoutes() { $('rRoute').innerHTML = Object.keys(rates.routes).map(r => `<option>${r}</option>`).join(''); }
+    function buildHubs() {
+      const opts = Object.entries(RAM_HUBS).map(([c, [n]]) => `<option value="${c}">${c} · ${n}</option>`).join('');
+      $('rFrom').innerHTML = opts; $('rTo').innerHTML = opts;
+    }
     function writeInputs() {
-      $('rRoute').value = inp.route in rates.routes ? inp.route : Object.keys(rates.routes)[0];
-      for (const [id, k] of [['rKg', 'kg'], ['rL', 'l'], ['rW', 'w'], ['rH', 'h'], ['rValue', 'value'], ['rMkVal', 'mkVal'], ['oValue', 'ownValue']]) $(id).value = inp[k];
-      $('rMk').value = inp.mk;
-      $('rBase').value = inp.base;
-      for (const k of SW) $(swId(k)).setAttribute('aria-checked', !!inp[k]);
+      $('rFrom').value = inp.from in RAM_HUBS ? inp.from : 'ISA'; $('rTo').value = inp.to in RAM_HUBS ? inp.to : 'DBN';
+      for (const [id, k] of NUM) $(id).value = inp[k];
+      $('rMk').value = inp.mk; $('rBase').value = inp.base;
+      for (const [k, id] of Object.entries(SW)) $(id).setAttribute('aria-checked', !!inp[k]);
     }
     function readInputs() {
-      inp.route = $('rRoute').value;
-      for (const [id, k] of [['rKg', 'kg'], ['rL', 'l'], ['rW', 'w'], ['rH', 'h'], ['rValue', 'value'], ['rMkVal', 'mkVal'], ['oValue', 'ownValue']]) inp[k] = +$(id).value || 0;
+      inp.from = $('rFrom').value; inp.to = $('rTo').value;
+      for (const [id, k] of NUM) inp[k] = +$(id).value || 0;
       inp.mk = $('rMk').value;
-      for (const k of SW) { if (k === 'av' && $('rAv').disabled) continue; inp[k] = $(swId(k)).getAttribute('aria-checked') === 'true'; }   // auto AV is not the user's choice
-      put('courier.ram.inputs.v1', inp);
+      for (const [k, id] of Object.entries(SW)) inp[k] = $(id).getAttribute('aria-checked') === 'true';
+      put('courier.ram.inputs.v2', inp);
     }
     function render() {
       readInputs();
       const c = last = ramCalc(inp, rates);
       if (!inp.manualBase) $('rBase').value = Math.round(c.base * 100) / 100;
-      $('rDivisor').textContent = rates.volDivisor; $('rAvLimit').textContent = R(rates.avLimit);
+      $('rDivisor').textContent = rates.volDivisor;
       $('rVol').textContent = N(c.vol, 2) + ' kg'; $('rCharge').textContent = N(c.chargeKg, 2) + ' kg';
-      const tbc = !c.route.base;
-      $('rBaseHint').textContent = inp.manualBase ? 'typed from a RAM quote' : tbc ? 'not on the route table yet' : 'from the route table';
+      $('rBaseHint').textContent = inp.manualBase ? 'typed from a RAM quote' : 'from the weight bands';
       $('rBaseNote').innerHTML = inp.manualBase
-        ? `<span class="pill manual">MANUAL</span>` + (tbc ? ' RAM has not quoted this route into the table, so type it from their quote.' : ` Table would give ${R(c.tableBase)} · <a id="rUseTable">use table</a>`)
-        : tbc ? `<span class="pill manual">TBC</span> No base rate for this route yet. Type it from the RAM quote.` : `<span class="pill">TABLE</span> ${R(c.route.base)} up to ${c.route.min} kg` + (c.route.perKg ? `, then ${R(c.route.perKg)} per kg` : '');
-      if ($('rUseTable')) $('rUseTable').onclick = () => { inp.manualBase = false; render(); };
-      const avSw = $('rAv'); avSw.setAttribute('aria-checked', c.avAuto || !!inp.av); avSw.disabled = c.avAuto; avSw.style.opacity = c.avAuto ? .6 : 1;
-      $('rAvHint').textContent = c.avAuto ? `on automatically: value is over ${R(rates.avLimit)}` : 'choose it, or it switches on by itself above the limit';
+        ? `<span class="pill manual">MANUAL</span> Bands would give ${R(c.band.base)} · <a id="rUseBand">use bands</a>`
+        : c.band.kind === 'quote' ? `<span class="pill">RAM QUOTE</span> ${c.band.src}`
+        : `<span class="pill manual">ESTIMATE</span> Between quoted weights. Ask RAM for a quote and type it in to be exact.`;
+      if ($('rUseBand')) $('rUseBand').onclick = () => { inp.manualBase = false; render(); };
+      $('rAvLbl').innerHTML = `${c.avName} <small>${c.escort ? 'RAM has no armoured vehicle in East London; armed escort, same price' : 'switches itself on and off from the rules'}</small>`;
+      $('rAv').setAttribute('aria-checked', c.avOn);
+      const overridden = inp.avOverride !== null && inp.avOverride !== undefined;
+      $('rAvNote').innerHTML = (overridden ? `<span class="pill manual">MANUAL</span> Rules say ${c.avAuto ? 'on' : 'off'} (${c.avReason}) · <a id="rAvAuto">back to automatic</a>` : `<span class="pill">AUTO</span> ${c.avReason}`);
+      if ($('rAvAuto')) $('rAvAuto').onclick = () => { inp.avOverride = null; render(); };
       $('rkValue').textContent = R(c.value); $('rkKg').textContent = N(c.chargeKg, 2) + ' kg';
-      $('rkFuel').textContent = N(rates.fuelPct, 2) + '%'; $('rkAv').textContent = c.avOn ? R(c.av) : 'Off';
+      $('rkFuel').textContent = N(rates.fuelPct, 2) + '%'; $('rkAvLbl').textContent = c.avName; $('rkAv').textContent = c.avOn ? R(c.av) : 'Off';
       $('rRows').innerHTML = c.lines.map(l => `<tr class="${l.on ? '' : 'off'}"><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td></tr>`).join('');
       $('rSub').textContent = R(c.sub); $('rVat').textContent = R(c.vat); $('rTot').textContent = R(c.total);
       $('rStamp').textContent = new Date().toLocaleDateString('en-ZA');
@@ -655,55 +688,54 @@
         .map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('') + `<tr class="total"><td>Total cost</td><td>${R(c.ownTotal)}</td></tr>`;
       $('oNote').innerHTML = c.ownOver ? `<b>Over ${R(rates.ownMax)}.</b> The policy only covers ${R(rates.ownMax)} per own-vehicle movement. Use a RAM armoured vehicle.` : `Covered at ${N(rates.ownInsPct, 3)}% per movement, up to ${R(rates.ownMax)}.`;
       $('oNote').style.background = c.ownOver ? 'var(--error-tint)' : 'var(--success-tint)';
-      const notes = [];
-      if (c.route.av === 8725.58 && c.avOn) notes.push('<b>Armoured vehicle rate may be out of date.</b> This route still uses R8,725.58. The workbook notes it rose to R9,249.11 in March 2026 and asks for a new quote to confirm.');
-      if (c.value > rates.ownMax) notes.push(`Over ${R(rates.ownMax)}: our policy requires an armoured vehicle for this movement.`);
-      notes.push(`Fuel surcharge is ${N(rates.fuelPct, 2)}% (April 2026). RAM changes it monthly; update the rate card when they notify you.`);
+      const notes = [`Fuel surcharge is ${N(rates.fuelPct, 2)}%, from RAM's quote of 31 Aug 2026. It moves every month; update it in the rate card from the next quote.`];
+      if (inp.ins) notes.push(`<b>Liability needs RAM sign-off.</b> The account has no standing liability cover, and RAM's directors refused it on a R10m shipment in May 2026. Confirm before quoting a client with it.`);
+      if (c.value > 1000000 && !inp.ins) notes.push(`Over R1,000,000 our specie policy's courier cover may not apply. Check whether this movement needs Odette to arrange cover.`);
       $('rNote').innerHTML = notes.join('<br>');
     }
     function buildRates() {
-      const labels = { fuelPct: 'Fuel surcharge % (monthly)', waybill: 'Waybill surcharge (R)', part108: 'Part 108 surcharge (R)', f2fPct: 'Face to face % of armoured vehicle', insPct: 'Insurance % of insured value',
-        vatPct: 'VAT %', volDivisor: 'Volumetric divisor (cm³/kg)', avLimit: 'Armoured vehicle automatic above (R)', saturday: 'Saturday surcharge (R)', afterHours: 'After hours surcharge (R)', ownInsPct: 'Own-vehicle cover % per movement', ownMax: 'Own-vehicle max cover (R)' };
+      const labels = { fuelPct: 'Fuel surcharge % (monthly)', waybill: 'Waybill (R)', av: 'Armoured vehicle / escort (R)', f2f: 'Face to face (R, flat)', part108: 'Part 108 (R)',
+        insPct: 'Liability % of value', insMin: 'Liability minimum (R)', vatPct: 'VAT %', volDivisor: 'Volumetric divisor (cm³/kg)', avLimit: 'Armoured vehicle needed above (R)',
+        waiverLimit: 'Same-city waiver below (R)', policyAvLimit: 'Policy: armoured vehicle above (R)', saturday: 'Saturday (R)', afterHours: 'After hours (R)', ownInsPct: 'Own-vehicle cover % per movement', ownMax: 'Own-vehicle max cover (R)' };
       $('rRates').innerHTML = '';
       for (const [k, lbl] of Object.entries(labels)) {
         const d = document.createElement('div'); d.className = 'field';
         d.innerHTML = `<label>${lbl}</label><input type="number" step="any" value="${rates[k]}">`;
-        d.querySelector('input').oninput = e => { const n = parseFloat(e.target.value); if (isNaN(n)) return; rates[k] = n; put('courier.ram.rates.v1', rates); render(); };
+        d.querySelector('input').oninput = e => { const n = parseFloat(e.target.value); if (isNaN(n)) return; rates[k] = n; put('courier.ram.rates.v2', rates); render(); };
         $('rRates').appendChild(d);
       }
-      const cols = [['min', 'Min kg'], ['base', 'Base at min (R)'], ['perKg', 'Per kg above (R)'], ['av', 'Armoured vehicle (R)']];
-      $('rRouteTable').innerHTML = `<thead><tr><th>Route</th>${cols.map(c => `<th>${c[1]}</th>`).join('')}</tr></thead><tbody>` +
-        Object.entries(rates.routes).map(([name, r]) => `<tr><td>${name}</td>${cols.map(([k]) => `<td><input style="width:110px" type="number" step="any" data-route="${name}" data-k="${k}" value="${r[k]}"></td>`).join('')}</tr>`).join('') + '</tbody>';
-      $('rRouteTable').querySelectorAll('input').forEach(el => el.oninput = e => { const n = parseFloat(e.target.value); if (isNaN(n)) return; rates.routes[e.target.dataset.route][e.target.dataset.k] = n; put('courier.ram.rates.v1', rates); render(); });
+      $('rBandTable').innerHTML = `<thead><tr><th>Chargeable kg</th><th>Base charge (R)</th><th>Where it comes from</th></tr></thead><tbody>` +
+        rates.bands.map((b, i) => `<tr><td><input style="width:90px" type="number" step="any" data-i="${i}" data-k="kg" value="${b.kg}"></td><td><input style="width:120px" type="number" step="any" data-i="${i}" data-k="base" value="${b.base}"></td><td style="text-align:left;white-space:normal">${b.src}</td></tr>`).join('') + '</tbody>';
+      $('rBandTable').querySelectorAll('input').forEach(el => el.oninput = e => { const n = parseFloat(e.target.value); if (isNaN(n)) return; rates.bands[+e.target.dataset.i][e.target.dataset.k] = n; put('courier.ram.rates.v2', rates); render(); });
       $('rFuelHist').innerHTML = RAM_FUEL_HISTORY.map(([m, p]) => `${m} <b>${N(p, 2)}%</b>`).join(' · ');
     }
     function summaryText() {
       const c = last, i = inp;
-      const l = c.lines.filter(x => x.on).map(x => `${x.label.padEnd(24)} ${R(x.ex).padStart(14)}`).join('\n');
-      return `RAM courier fee – ${new Date().toLocaleDateString('en-ZA')}\nRoute: ${i.route}\nWeight: ${N(c.chargeKg)} kg chargeable (actual ${N(+i.kg || 0)} kg, volumetric ${N(c.vol)} kg)\nInsured value: ${R(c.value)}\n\n${l}\n${'Sub total'.padEnd(24)} ${R(c.sub).padStart(14)}\n${'VAT'.padEnd(24)} ${R(c.vat).padStart(14)}\n${'GRAND TOTAL'.padEnd(24)} ${R(c.total).padStart(14)}` +
+      const l = c.lines.filter(x => x.on).map(x => `${x.label.padEnd(20)} ${R(x.ex).padStart(14)}`).join('\n');
+      return `RAM courier fee – ${new Date().toLocaleDateString('en-ZA')}\nRoute: ${i.from} → ${i.to}\nWeight: ${N(c.chargeKg)} kg chargeable (actual ${N(+i.kg || 0)} kg, volumetric ${N(c.vol)} kg)\nValue: ${R(c.value)}\n\n${l}\n${'Sub total'.padEnd(20)} ${R(c.sub).padStart(14)}\n${'VAT'.padEnd(20)} ${R(c.vat).padStart(14)}\n${'GRAND TOTAL'.padEnd(20)} ${R(c.total).padStart(14)}` +
         (c.markup ? `\n\nClient price incl VAT: ${R(c.clientTotal)} (mark-up ${R(c.markup)})` : '');
     }
     function fillQuote() {
       const c = last, i = inp, v = rates.vatPct / 100;
       $('qTitle').textContent = 'RAM delivery cost';
-      $('qDate').innerHTML = `<b>${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</b><br>${new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })} · ${i.route}`;
-      $('qShip').innerHTML = `<span>Shipment</span><div><b>${i.route}</b><i>${N(+i.kg || 0, 2)} kg actual · ${i.l}×${i.w}×${i.h} cm · ${N(c.chargeKg, 2)} kg chargeable</i></div>`;
-      $('qFacts').innerHTML = [['Insured value', R(c.value)], ['Chargeable', N(c.chargeKg, 2) + ' kg'], ['Fuel surcharge', N(rates.fuelPct, 2) + '%'], ['Armoured vehicle', c.avOn ? 'Yes' : 'No']]
+      $('qDate').innerHTML = `<b>${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</b><br>${new Date().toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })} · ${i.from} → ${i.to}`;
+      $('qShip').innerHTML = `<span>Shipment</span><div><b>${i.from} → ${i.to}</b><i>${N(+i.kg || 0, 2)} kg actual · ${i.l}×${i.w}×${i.h} cm · ${N(c.chargeKg, 2)} kg chargeable</i></div>`;
+      $('qFacts').innerHTML = [['Shipment value', R(c.value)], ['Chargeable', N(c.chargeKg, 2) + ' kg'], ['Fuel surcharge', N(rates.fuelPct, 2) + '%'], [c.avName, c.avOn ? 'Yes' : 'No']]
         .map(([k, val]) => `<div class="fact"><span>${k}</span><b>${val}</b></div>`).join('');
       $('qRows').innerHTML = c.lines.filter(l => l.on).map(l => `<tr><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td>${R(l.ex * v)}</td><td>${R(l.ex * (1 + v))}</td></tr>`).join('') +
         `<tr><td>Subtotal</td><td>${R(c.sub)}</td><td>${R(c.vat)}</td><td>${R(c.total)}</td></tr>` +
         `<tr class="grand"><td>Total delivery charge<small>incl. VAT</small></td><td></td><td></td><td>${R(c.total)}</td></tr>`;
-      $('qFoot').innerHTML = `<div>Account AURU02 · valuable cargo</div><div>${c.markup ? 'Client price incl VAT <b>' + R(c.clientTotal) + '</b>' : 'Courier cost, no mark-up'}</div>`;
+      $('qFoot').innerHTML = `<div>Account AURU02 · valuable cargo${c.band.kind === 'estimate' && !inp.manualBase ? ' · base charge estimated' : ''}</div><div>${c.markup ? 'Client price incl VAT <b>' + R(c.clientTotal) + '</b>' : 'Courier cost, no mark-up'}</div>`;
     }
 
-    buildRoutes(); buildRates(); writeInputs(); render();
-    $('rRoute').addEventListener('change', () => { inp.manualBase = false; render(); });
-    for (const id of ['rKg', 'rL', 'rW', 'rH', 'rValue', 'rMkVal', 'oValue']) $(id).addEventListener('input', render);
-    $('rMk').addEventListener('change', render);
+    buildHubs(); buildRates(); writeInputs(); render();
+    for (const id of ['rFrom', 'rTo', 'rMk']) $(id).addEventListener('change', render);
+    for (const [id] of NUM) $(id).addEventListener('input', render);
     $('rBase').addEventListener('input', () => { inp.manualBase = true; inp.base = +$('rBase').value || 0; render(); });
-    for (const k of SW) $(swId(k)).onclick = e => { if (e.currentTarget.disabled) return; e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
+    $('rAv').onclick = () => { inp.avOverride = !(last && last.avOn); render(); };
+    for (const id of Object.values(SW)) $(id).onclick = e => { e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
     $('rReset').onclick = () => { inp = clone(RAM_DEFAULT_INPUTS); writeInputs(); render(); };
-    $('rResetRates').onclick = () => { rates = clone(RAM_RATES); put('courier.ram.rates.v1', rates); buildRoutes(); buildRates(); writeInputs(); render(); };
+    $('rResetRates').onclick = () => { rates = clone(RAM_RATES); put('courier.ram.rates.v2', rates); buildRates(); render(); };
     $('rCopy').onclick = async () => { try { await navigator.clipboard.writeText(summaryText()); toast('Summary copied'); } catch { toast('Copy blocked by browser'); } };
     $('rQuoteBtn').onclick = () => { fillQuote(); $('overlay').classList.add('on'); };
     if (new URLSearchParams(location.search).has('ramquote')) { document.querySelector('.tab[data-view="ram"]').click(); $('rQuoteBtn').click(); }

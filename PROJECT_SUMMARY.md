@@ -101,25 +101,24 @@ Photos instead. Any future embedded app that uses the File System Access API nee
 - Optional: single shared login across Proof + Stock Take (both use the same name+PIN pattern).
 - Optional: Merino cream (#F5EEDD) page background variant — Abdullah preferred white for now.
 
-## RAM calculator (2026-09-25)
-Source: `abdullahs storage\15. RAM\RAM Insurance\RAM_Courier_Calculator.xlsx` (Calculator + RateCard tabs)
-and `RAM Tranfers Insurance Cover.xlsx`. Pure `ramCalc()` sits between `@@RAM-CALC-START/END` markers
-in `courier/index.html`; rates in `RAM_RATES` with cell refs. Reproduces the workbook example
-(ISA → CPT, 4 kg, R1,026,000 insured) to the cent: R17,205.66. 25-check Node test `test_ram.mjs`
-(session scratchpad). Direct link: `courier/?tab=ram`.
-
-Logic: base charge (route table: minimum up to min kg, then per kg or part above; or typed from a
-RAM quote when the table says R0/TBC) + fuel 49.16% of base + waybill R29.20 + armoured vehicle
-(chosen, or automatic above R150k insured) + face to face 1.3961% of AV + insurance 0.4% of insured
-value + optional Part 108 R70 / Saturday R137.15 / after hours R525, then 15% VAT. Client pricing
-card: fixed or % mark-up. Own-vehicle card: 0.035% per movement, capped at R5m cover.
-
-**Differences from the workbook, on purpose:** Part 108 is a switch (workbook hard-codes R0);
-Saturday and after-hours use the RAM rate card PDF values (workbook has R0); the route table actually
-drives the base charge (workbook's F4 is typed). **Open questions for Abdullah:** RAM rate card PDF
-expired 2026-08-31 and shows fuel 46.80%, waybill R4.20, AV R6,000 vs the workbook's quote-based
-49.16% / R29.20 / R8,725–9,249; ISA → CPT and CPT → PTA still on the old R8,725.58 AV rate; most
-routes have no base rate yet (TBC).
+## RAM calculator (2026-09-25, rebuilt from Outlook quotes the same day)
+First version copied `abdullahs storage. RAM\RAM Insurance\RAM_Courier_Calculator.xlsx`. It was then rebuilt
+from **24 real RAM quotes** on account AURU02 found in Outlook (Mandre Pretorius, Peter van der Berg, Abram Maboa,
+Odette Strydom; Sep 2024 to Aug 2026). The workbook's model was wrong in several ways the quotes prove:
+- **Base charge depends on chargeable weight, not route** (R1,883.11 at 7.2 kg local, regional and Durban alike).
+  Weight bands in `RAM_RATES.bands`: 2.4 kg R1,048.01 and 7.2 kg R1,883.11 (quoted 2026); 9.6 kg and 20 kg are
+  2025 quotes plus RAM's 6% April 2026 increase. Between points = straight-line ESTIMATE, flagged on the page.
+- Fuel is a monthly % of base (51.73% on 31 Aug 2026; history on the page). Waybill R29.20, AV R9,249.11.
+- **Face to face is flat R129.13**, charged even without AV. **Part 108 R70 always** ("known shipper", Mandre 31 Aug).
+- **AV rule:** needed above R150k, **waived under R1m when collected and delivered in the same city, JHB or CPT**
+  (Odette 13 Nov 2025), forced above R5m by our specie policy. East London: armed escort, same price. Manual override.
+- Liability 0.4% of value, minimum R50, **needs RAM sign-off** (no standing cover; directors refused R10m in May 2026).
+- RAM rounds each line to the cent; so does the calculator.
+Verified: `test_ram.mjs` (scratchpad) reproduces 8 RAM quotes to the cent (Montana Gardens, Hermanus x3, Umhlanga,
+Ballito, Gillitts x2) plus the rules. Default inputs = latest quote, 31 Aug 2026 Bedfordview to Gillitts, R17,097.73.
+Hubs are chosen From/To (Durban = DBN). Client mark-up and own-vehicle cover (0.035%, R5m cap) cards kept.
+**Still open:** RAM rate card PDF expired 2026-08-31; RAM's portal quotes price base lower than Mandre's emailed ones
+(he says the email is correct); more quoted weights would replace the estimated bands.
 
 ## Logo (2026-09-25)
 `assets/logo.svg`: circle + two vertical ticks + letter-spaced INVENTORY, from Abdullah's image.
