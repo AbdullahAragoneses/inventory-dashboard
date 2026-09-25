@@ -182,10 +182,10 @@
   // ---- Add a new app here: one line per tool. icon = file in assets/icons (Solstice navbar set). ----
   const APPS = [
     { id: 'home',    icon: 'ic-analytics', label: 'Dashboard',    url: null },
-    { id: 'proof',   icon: 'ic-product',   label: 'Proof Coins',  tint: 'warning',   url: 'https://proof-dashboard-eight.vercel.app/',          blurb: 'Capture proof coins, attach photos, and feed the public catalogue.' },
-    { id: 'stock',   icon: 'ic-banking',   label: 'Stock Take',   tint: 'info',      url: 'https://stock-take-dashboard-seven.vercel.app/',     blurb: 'Vault stock takes with counted-vs-expected checks. Replaces the paper count.' },
-    { id: 'sli',     icon: 'ic-invoice',   label: 'SLI',          tint: 'secondary', url: 'https://abdullaharagoneses.github.io/sli-generator/', blurb: 'Shipper’s Letter of Instruction generator with a shared invoice counter.' },
-    { id: 'courier', icon: 'ic-tour',      label: 'Courier Fees', tint: 'success',   url: 'courier/',                                           blurb: 'BRINKS, RAM and MDS delivery cost calculators with live spot. BRINKS is live; the others follow.' },
+    { id: 'proof',   icon: 'ic-coins',     label: 'Proof Coins',  tint: 'warning',   url: 'https://proof-dashboard-eight.vercel.app/',          blurb: 'Capture proof coins, attach photos, and feed the public catalogue.' },
+    { id: 'stock',   icon: 'ic-stocktake', label: 'Stock Take',   tint: 'info',      url: 'https://stock-take-dashboard-seven.vercel.app/',     blurb: 'Vault stock takes with counted-vs-expected checks. Replaces the paper count.' },
+    { id: 'sli',     icon: 'ic-sli',       label: 'SLI',          tint: 'secondary', url: 'https://abdullaharagoneses.github.io/sli-generator/', blurb: 'Shipper’s Letter of Instruction generator with a shared invoice counter.' },
+    { id: 'courier', icon: 'ic-courier',   label: 'Courier Fees', tint: 'success',   url: 'courier/',                                           blurb: 'BRINKS, RAM and MDS delivery cost calculators with live spot. BRINKS is live; the others follow.' },
   ];
   const TINT = { warning: ['var(--warning-tint)', 'var(--warning-darker)'], info: ['var(--info-tint)', 'var(--info-darker)'], secondary: ['var(--secondary-tint)', 'var(--secondary-darker)'], success: ['var(--success-tint)', 'var(--success-dark)'] };
   const LOCAL = { proof: 'http://127.0.0.1:8789/', stock: 'http://127.0.0.1:8000/', sli: 'http://127.0.0.1:8788/' };
