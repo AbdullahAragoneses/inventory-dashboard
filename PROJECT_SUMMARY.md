@@ -102,7 +102,8 @@ Photos instead. Any future embedded app that uses the File System Access API nee
 - Optional: Merino cream (#F5EEDD) page background variant — Abdullah preferred white for now.
 
 ## RAM calculator (2026-09-25, rebuilt from Outlook quotes the same day)
-First version copied `abdullahs storage. RAM\RAM Insurance\RAM_Courier_Calculator.xlsx`. It was then rebuilt
+First version copied `abdullahs storage
+. RAM\RAM Insurance\RAM_Courier_Calculator.xlsx`. It was then rebuilt
 from **24 real RAM quotes** on account AURU02 found in Outlook (Mandre Pretorius, Peter van der Berg, Abram Maboa,
 Odette Strydom; Sep 2024 to Aug 2026). The workbook's model was wrong in several ways the quotes prove:
 - **Base charge depends on chargeable weight, not route** (R1,883.11 at 7.2 kg local, regional and Durban alike).
@@ -123,3 +124,25 @@ Hubs are chosen From/To (Durban = DBN). Client mark-up and own-vehicle cover (0.
 ## Logo (2026-09-25)
 `assets/logo.svg`: circle + two vertical ticks + letter-spaced INVENTORY, from Abdullah's image.
 Used as a CSS mask (white on the dark strip), favicon, and in the quote card headers.
+
+## MDS Collivery calculator (2026-09-25)
+Built from the MDS portal (collivery.net, account SABIS; Abdullah logged in, read only):
+- **Rate sheet PDF** (Prices > Rate Sheet, printed 2026-09-25; copy in Downloads as `MDS Rate Sheet SABIS 2026-09-25.pdf`):
+  per-kg matrix for 32 hubs x 4 services (Same Day SDX, Next Day ONX, Road Freight Express ECO, Road Freight FRT),
+  minimums (Local / Major / Main / Inter main), included kg, volumetric divisor, surcharges, location types.
+- **Waybill history CSV** (Administration > Waybill History > Export CSV, Apr-Sep 2026, 758 waybills, itemised).
+  Kept only in Downloads/scratchpad: it has client addresses, never put it in this public repo.
+Formula (matches 742/758 waybills to the cent, all within R0.20): base = sheet minimum / 0.89; extra kg = started kg
+above included (2 kg major/main, 15 kg local ONX) x (sheet per-kg / 0.89, + R11.21 if regional/outlying); regional
+R136.80 or outlying R152.30; 11% discount off base + extra + regional; + R10.20 doc fee + town surcharge + time
+surcharge + R0.50 delivery PIN; fuel 26.8% on all of that; + location-type fee (no fuel); rounded to nearest 20c.
+Town -> area type lookup (~150 towns) and remote-town surcharges (Beaufort West R561.80, Chintsa East R150, Kokstad
+R120, Prieska R100, Phalaborwa R60, Lime Acres R25) come from the history. MDS vs RWS (sister company) delivery areas
+from Kathy Bergoff's 16 Sep 2026 email; PIN delivery only in MDS branch areas. Test: `test_mds.mjs` (scratchpad),
+10 real waybills. **Watch:** fuel changes monthly (24.6% Apr to 29.4% Jun); MDS re-weighs parcels (2.2 kg volumetric
+turned R188 into R270.20).
+
+## PUBLIC REPO WARNING
+`inventory-dashboard` is a PUBLIC GitHub repo served on GitHub Pages. The courier page now embeds negotiated account
+pricing (MDS rate sheet, RAM quote figures, BRINKS rates). Pushing publishes them. Decide before pushing: make the
+repo private (Pages then needs a paid plan) or host the courier page somewhere access-controlled.
