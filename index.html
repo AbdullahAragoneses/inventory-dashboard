@@ -11,9 +11,9 @@
   /* ---------- Tokens: Solstice (Minimal UI) palette, captured 2026-09-25 from solstice.goldstore.co.za ---------- */
   :root {
     --bg: #F7F8FA; --paper: #FFFFFF; --neutral: #F4F6F8;
-    --divider: rgba(145,158,171,.2); --divider-2: rgba(145,158,171,.12); --hover: rgba(145,158,171,.08);
+    --divider: rgba(145,158,171,.2); --divider-2: rgba(145,158,171,.12); --hover: rgba(22,88,123,.07);
     --text: #1C252E; --text-2: #637381; --text-3: #919EAB;
-    --primary: #1C252E; --primary-dark: #141A21;
+    --primary: #16587B; --primary-dark: #124A68;   /* teal (Venice Blue) replaces Solstice black, 2026-09-25 trial */
     --success: #0BDDB2; --success-dark: #099E7F; --success-tint: rgba(11,221,178,.16);
     --warning: #FF9E01; --warning-light: #FCC264; --warning-darker: #754800; --warning-tint: rgba(255,158,1,.16);
     --info: #00A8D5; --info-light: #5FD1F0; --info-darker: #004F64; --info-tint: rgba(0,168,213,.16);
@@ -21,14 +21,15 @@
     --grey-tint: rgba(145,158,171,.16); --grey-dark: #454F5B;
     --shadow-card: 0 0 2px 0 rgba(145,158,171,.2), 0 12px 24px -4px rgba(145,158,171,.12);
     --shadow-z8: 0 8px 16px 0 rgba(145,158,171,.16);
-    --nav-active-bg: #141A21; --nav-active-text: #FFFFFF; --nav-strip: #141A21;
-    --dark-card: linear-gradient(135deg, #0B0F19 0%, #111827 50%, #0D1322 100%);
+    --nav-active-bg: #16587B; --nav-active-text: #FFFFFF; --nav-strip: linear-gradient(135deg, #0E3A52 0%, #16587B 55%, #124A68 100%);
+    --dark-card: linear-gradient(135deg, #0E3A52 0%, #16587B 55%, #124A68 100%);
     --w-open: 300px; --w-mini: 88px;
   }
   :root[data-theme="dark"] {
     --bg: #141A21; --paper: #1C252E; --neutral: #28323D; --text: #FFFFFF; --text-2: #919EAB; --text-3: #637381;
     --shadow-card: 0 0 2px 0 rgba(0,0,0,.2), 0 12px 24px -4px rgba(0,0,0,.12); --shadow-z8: 0 8px 16px 0 rgba(0,0,0,.16);
-    --nav-active-bg: #FFFFFF; --nav-active-text: #141A21;
+    --nav-active-bg: #16587B; --nav-active-text: #FFFFFF; --nav-strip: linear-gradient(135deg, #0B2E42 0%, #124A68 55%, #0E3A52 100%); --hover: rgba(132,179,206,.10);
+    --dark-card: linear-gradient(135deg, #0B2E42 0%, #124A68 55%, #0E3A52 100%);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,7 +53,7 @@
   .options { display: flex; flex-direction: column; gap: 4px; padding: 16px; }
   .sidebar.closed .options { padding: 16px 4px 16px 0; }
   .opt { display: flex; align-items: center; gap: 12px; height: 44px; padding: 4px 8px 4px 12px; border: none; border-radius: 8px; background: transparent; cursor: pointer; color: var(--text-2); font-size: 14px; font-weight: 500; text-align: left; transition: background .15s, color .15s; }
-  .opt:hover { background: var(--hover); color: var(--text); }
+  .opt:hover { background: var(--hover); color: var(--primary); }
   .opt.selected { background: var(--nav-active-bg); color: var(--nav-active-text); font-weight: 600; }
   .ic { width: 24px; height: 24px; flex-shrink: 0; background: currentColor; -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat; }
   .lbl { white-space: nowrap; }
@@ -103,7 +104,7 @@
   .spot .s { font-size: 11px; color: #94A3B8; }
   .spot .s.err { color: #FF827F; }
 
-  .section-h { font-size: 18px; font-weight: 700; margin: 8px 0 16px; }
+  .section-h { font-size: 18px; font-weight: 700; margin: 8px 0 16px; color: var(--primary-dark); }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; margin-bottom: 24px; }
   .card { background: var(--paper); border-radius: 16px; box-shadow: var(--shadow-card); padding: 24px; cursor: pointer; transition: transform .15s, box-shadow .15s; }
   .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-z8); }
@@ -111,7 +112,7 @@
   .card .tile .ic { width: 26px; height: 26px; }
   .card h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
   .card p { font-size: 14px; color: var(--text-2); line-height: 1.55; }
-  .card .go { font-size: 13px; color: var(--success-dark); font-weight: 600; margin-top: 14px; }
+  .card .go { font-size: 13px; color: var(--primary); font-weight: 600; margin-top: 14px; }
   .panel { background: var(--paper); border-radius: 16px; box-shadow: var(--shadow-card); padding: 24px; }
   .panel h3 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
   .row { display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 12px; }
@@ -189,7 +190,7 @@
     { id: 'proof',   icon: 'ic-coins',     label: 'Proof Coins',  tint: 'warning',   url: 'https://proof-dashboard-eight.vercel.app/',          blurb: 'Capture proof coins, attach photos, and feed the public catalogue.' },
     { id: 'stock',   icon: 'ic-stocktake', label: 'Stock Take',   tint: 'info',      url: 'https://stock-take-dashboard-seven.vercel.app/',     blurb: 'Vault stock takes with counted-vs-expected checks. Replaces the paper count.' },
     { id: 'sli',     icon: 'ic-sli',       label: 'SLI',          tint: 'secondary', url: 'https://abdullaharagoneses.github.io/sli-generator/', blurb: 'Shipper’s Letter of Instruction generator with a shared invoice counter.' },
-    { id: 'courier', icon: 'ic-courier',   label: 'Courier Fees', tint: 'success',   url: 'courier/',                                           blurb: 'BRINKS, RAM and MDS delivery cost calculators with live spot. BRINKS is live; the others follow.' },
+    { id: 'courier', icon: 'ic-courier',   label: 'Courier Fees', tint: 'success',   url: 'courier/?v=20260926b',                                           blurb: 'BRINKS, RAM and MDS delivery cost calculators, checked against real invoices and waybills.' },
   ];
   const TINT = { warning: ['var(--warning-tint)', 'var(--warning-darker)'], info: ['var(--info-tint)', 'var(--info-darker)'], secondary: ['var(--secondary-tint)', 'var(--secondary-darker)'], success: ['var(--success-tint)', 'var(--success-dark)'] };
   const LOCAL = { proof: 'http://127.0.0.1:8789/', stock: 'http://127.0.0.1:8000/', sli: 'http://127.0.0.1:8788/' };
