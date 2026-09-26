@@ -151,6 +151,24 @@ fill in by themselves. Town surcharges are not published by MDS, so only the six
 (Beaufort West R561.80, Chintsa East R150, Kokstad R120, Prieska R100, Phalaborwa R60, Lime Acres R25); other
 Regional/Outlying towns show a "check" note.
 
+## BRINKS rebuilt from real invoices (2026-09-26)
+Shahiema's recon is not one sheet: a workbook per month (`Brinks_Reconciliation_<Month>_2026.xlsx` etc.) filed with the
+invoices in `23 SABIS Accounting. Invoices and PoP's6\<NN MONTH>\<nn>. BRINKS\`. The recon has no SLI numbers;
+the **Brinks invoice PDFs** do ("Invoice #: GLD 10159", with a space). A read-only extraction of every 2026 invoice
+(349 documents, 415 charge lines, 130 invoices / 121 SLIs with a GLD number) is saved at
+`Projects\Reference Documents\Brinks invoices 2026\` (CSV + notes + the three test scripts). Not in this public repo.
+What the invoices prove (and the calculator now uses):
+- Route-based flat charge: in-house Bedfordview move R350 admin only, no liability (101 of the SLIs); Bedfordview to
+  Sandton / Pretoria / Centurion R2,500; Rand Refinery R1,650 (R1,833 in Jan); Brinks Kempton Park R1,833; Cape Town to
+  Johannesburg door to door R6,312; airfreight to Cape Town R5,375 consolidated / R7,500 not.
+- Liability 0.048% of the declared (customs) value, minimum USD 50 at the invoice rate, truncated to the cent.
+- Weight charges R45 per kg of GROSS weight on intercity freight (not R39.95 over 4 kg as in the sheet).
+- 15% VAT on every line, liability included (the sheet's "VAT on delivery only" total was wrong).
+Test: `test_brinks.mjs` re-prices 12 real SLI invoices to the cent. The old sheet-based BRINKS test is retired.
+Worth raising with Brinks: Rand Refinery liability billed three ways (10041 0.048%, 10071 minimum only, 10059 none);
+GLD 10165 R1,475.00 vs 0.048% = R1,475.13; two liability lines at 0.045%; two "ANNUAL LIABILITY 0.02%" at 0.068%;
+Jan statement invoices 180755-180874 and 181355/181368 have no PDF in SharePoint.
+
 ## PUBLIC REPO WARNING
 `inventory-dashboard` is a PUBLIC GitHub repo served on GitHub Pages. The courier page now embeds negotiated account
 pricing (MDS rate sheet, RAM quote figures, BRINKS rates). Pushing publishes them. Decide before pushing: make the

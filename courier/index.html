@@ -9,14 +9,14 @@
 <style>
   /* Solstice (Minimal UI) tokens, same as the dashboard shell. */
   :root {
-    --bg: #FFFFFF; --paper: #FFFFFF; --neutral: #F4F6F8; --divider: rgba(145,158,171,.2); --divider-2: rgba(145,158,171,.12); --hover: rgba(145,158,171,.08);
-    --text: #1C252E; --text-2: #637381; --text-3: #919EAB; --primary: #1C252E; --primary-dark: #141A21;
+    --bg: #FFFFFF; --paper: #FFFFFF; --neutral: #F4F6F8; --divider: rgba(145,158,171,.2); --divider-2: rgba(145,158,171,.12); --hover: rgba(22,88,123,.07);
+    --text: #1C252E; --text-2: #637381; --text-3: #919EAB; --primary: #16587B; --primary-dark: #124A68;
     --success: #0BDDB2; --success-dark: #099E7F; --success-tint: rgba(11,221,178,.16);
     --warning: #FF9E01; --warning-darker: #754800; --warning-tint: rgba(255,158,1,.16);
     --error: #FF322D; --error-tint: rgba(255,50,45,.12);
     --info-darker: #004F64; --info-tint: rgba(0,168,213,.16); --grey-tint: rgba(145,158,171,.16);
     --shadow-card: 0 0 2px 0 rgba(145,158,171,.2), 0 12px 24px -4px rgba(145,158,171,.12);
-    --dark-card: linear-gradient(135deg, #0B0F19 0%, #111827 50%, #0D1322 100%);
+    --dark-card: linear-gradient(135deg, #0E3A52 0%, #16587B 55%, #124A68 100%);   /* teal sheen, 2026-09-25 trial */
     --input-border: rgba(145,158,171,.32);
   }
   :root[data-theme="dark"] {
@@ -31,11 +31,11 @@
   /* Courier tabs: Solstice segmented control */
   .tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 10px; background: var(--neutral); margin-bottom: 20px; }
   .tab { border: none; background: transparent; padding: 7px 16px; border-radius: 8px; cursor: pointer; color: var(--text-2); font-weight: 600; font-size: 13px; }
-  .tab.on { background: var(--paper); color: var(--text); box-shadow: 0 1px 2px rgba(145,158,171,.24); }
+  .tab.on { background: var(--paper); color: var(--primary); box-shadow: 0 1px 2px rgba(145,158,171,.24); }
   .tab .soon { font-size: 10px; color: var(--text-3); margin-left: 6px; font-weight: 500; }
   .view { display: none; } .view.on { display: block; }
 
-  .cols { display: grid; grid-template-columns: minmax(320px, 440px) 1fr; gap: 24px; align-items: start; }
+  .cols { display: grid; grid-template-columns: minmax(360px, 580px) minmax(0, 1fr); gap: 24px; align-items: start; }
   @media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
 
   .card { border-radius: 16px; background: var(--paper); box-shadow: var(--shadow-card); }
@@ -98,7 +98,7 @@
   .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
   .btn { height: 38px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--input-border); background: var(--paper); cursor: pointer; font-weight: 700; font-size: 13px; }
   .btn:hover { background: var(--hover); }
-  .btn.primary { background: var(--primary-dark); border-color: var(--primary-dark); color: #fff; box-shadow: 0 8px 16px 0 rgba(28,37,46,.24); } .btn.primary:hover { background: #000; }
+  .btn.primary { background: var(--primary-dark); border-color: var(--primary-dark); color: #fff; box-shadow: 0 8px 16px 0 rgba(22,88,123,.24); } .btn.primary:hover { background: #0E3A52; }
   :root[data-theme="dark"] .btn.primary { background: #fff; border-color: #fff; color: #141A21; box-shadow: none; }
 
   details.card summary { list-style: none; cursor: pointer; font-size: 18px; font-weight: 700; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -136,7 +136,7 @@
   .quote th { background: #F4F6F8; color: #637381; }
   .quote td { border-bottom: 1px dashed #DFE3E8; color: #1C252E; }
   .quote td:first-child small { color: #637381; }
-  .quote tr.grand td { border-top: 2px solid #141A21; border-bottom: none; padding-top: 14px; font-size: 22px; font-weight: 800; color: #099E7F; }
+  .quote tr.grand td { border-top: 2px solid #124A68; border-bottom: none; padding-top: 14px; font-size: 22px; font-weight: 800; color: #099E7F; }
   .quote tr.grand td:first-child { font-size: 15px; color: #1C252E; }
   .quote .qf { display: flex; justify-content: space-between; gap: 12px; margin-top: 16px; font-size: 11px; color: #637381; flex-wrap: wrap; }
   .quote .qf b { color: #1C252E; font-weight: 700; }
@@ -159,17 +159,17 @@
       <div class="card">
         <h3>Shipment <small>what is moving</small></h3>
         <div class="body">
-          <div class="field"><label>Destination</label><select id="dest"></select></div>
+          <div class="field" style="grid-template-columns:1fr 250px"><label>Route <small>as billed on Brinks invoices</small></label><select id="dest"></select></div>
           <div class="sub-h">Lines <span style="font-weight:400;text-transform:none;letter-spacing:0">· gold and silver can share one shipment</span></div>
           <div id="lines"></div>
           <button class="add" id="addLine">+ Add line</button>
           <div class="field calc" style="margin-top:8px"><label>Total weight <small>all lines</small></label><b id="totalKg">–</b></div>
           <div class="live" id="live">Fetching live spot…</div>
           <div class="sub-h">Options</div>
-          <div class="field chk"><label>Insure at replacement value <small>gold +4.5%, silver +8% on top of spot</small></label><button class="switch" id="replacement" role="switch" aria-checked="false"></button></div>
-          <div class="field chk"><label>Admin fee <small>only if BRINKS opens / tampers with the package</small></label><button class="switch" id="admin" role="switch" aria-checked="true"></button></div>
-          <div class="field chk"><label>Weight surcharge over 4 kg <small>not applied on local runs</small></label><button class="switch" id="surcharge" role="switch" aria-checked="false"></button></div>
-          <div class="field chk"><label>VAT on insurance &amp; admin too <small>off = VAT on delivery only (sheet total)</small></label><button class="switch" id="vatAll" role="switch" aria-checked="false"></button></div>
+          <div class="field chk"><label>Declare at replacement value <small>as the SLI does: gold +4.5%, silver +8%</small></label><button class="switch" id="replacement" role="switch" aria-checked="true"></button></div>
+          <div class="field"><label>Packaging weight <small>kg of box and packing; Brinks bills gross</small></label><input id="packKg" type="number" min="0" step="0.1"></div>
+          <div class="field chk"><label>Weight charge <small>R45 per gross kg; on by itself for intercity freight</small></label><button class="switch" id="surcharge" role="switch" aria-checked="false"></button></div>
+          <div class="field chk"><label>Extra admin fee <small>R350, e.g. second parcel or package opened</small></label><button class="switch" id="admin" role="switch" aria-checked="false"></button></div>
           <div class="actions"><button class="btn" id="reset">Reset inputs</button></div>
         </div>
       </div>
@@ -183,7 +183,7 @@
             <div class="kpi"><span>Spot value</span><b id="kSpot">–</b></div>
             <div class="kpi"><span>Insured value</span><b id="kInsured">–</b></div>
             <div class="kpi"><span>Total weight</span><b id="kKg">–</b></div>
-            <div class="kpi"><span>Excess over 4 kg</span><b id="kExcess">–</b></div>
+            <div class="kpi"><span>Charged as</span><b id="kExcess">–</b></div>
           </div>
           <table>
             <thead><tr><th>Line</th><th>Excl VAT</th><th>VAT</th><th>Incl VAT</th></tr></thead>
@@ -202,7 +202,7 @@
   </div>
 
   <details class="card" style="margin-top:24px">
-    <summary>Rate card <small>from BRINKS CALCULATOR.xlsx. Edit when BRINKS changes prices. Saved in this browser.</small></summary>
+    <summary>Rate card <small>from 130 Brinks invoices on your SLIs, Jan to Aug 2026. Edit when BRINKS changes prices. Saved in this browser.</small></summary>
     <div class="body">
       <div class="rates" id="rates"></div>
       <div class="actions"><button class="btn" id="resetRates">Reset to sheet values</button></div>
@@ -305,6 +305,7 @@
         <h3>Shipment <small>account SABIS · MDS Collivery</small></h3>
         <div class="body">
           <div class="field"><label>Service</label><select id="mSvc"></select></div>
+          <div class="field" style="grid-template-columns:1fr 240px"><label>Collection point <small>fills the hub and suburb for you</small></label><select id="mPoint"></select></div>
           <div class="field" style="grid-template-columns:1fr 240px"><label>Collect from <small>MDS hub</small></label><select id="mFrom"></select></div>
           <div class="field" style="grid-template-columns:1fr 240px"><label>Collection suburb <small>optional; defaults to the hub town</small></label><input id="mFromSub" list="mFromList" style="text-align:left" placeholder="type to search"><datalist id="mFromList"></datalist></div>
           <div class="field" style="grid-template-columns:1fr 240px"><label>Deliver to <small>MDS hub</small></label><select id="mTo"></select></div>
@@ -381,13 +382,22 @@
 <div class="toast" id="toast">Copied</div>
 
 <script>
-  // ---------- Rate card: every number comes from BRINKS CALCULATOR.xlsx, tab "BRINKS CALCULATOR" (cell refs in comments). ----------
+  // ---------- Rate card: from 130 Brink's invoices carrying our GLD (SLI) numbers, Jan to Aug 2026 (account 57403),
+  //            cross-checked with BRINKS CALCULATOR.xlsx. Every line on every invoice carries 15% VAT, liability included. ----------
   const DEFAULT_RATES = {
-    vatPct: 15,                                    // C3 = B3*15/100
-    dest: { 'JHB': 2500, 'PRETORIA': 2500, 'CPT (Consolidated)': 5375, 'CPT Not Consolidated': 7500 },  // B3:B6, excl VAT
-    surchargePerKg: 39.95,                         // F3, excl VAT, per kg over the standard weight
-    standardKg: 4,                                 // B24
-    liabilityPct: 0.048,                           // A9, % of insured value
+    vatPct: 15,
+    dest: {                                        // flat charge per route, excl VAT (invoice line in comments)
+      'Bedfordview in-house (Brinks ↔ SA Bullion suite)': 350,     // ADMINISTRATION FEE, site movement, no liability
+      'Bedfordview ↔ Sandton / Pretoria / Centurion': 2500,        // DELIVERY (Scoin Sandton, Union Vault PTA, SA Mint, Garden Court)
+      'Rand Refinery ↔ Bedfordview': 1650,                         // DELIVERY (R1,833 in Jan 2026, R1,650 since Feb)
+      'Brinks Kempton Park ↔ Bedfordview': 1833,                   // DELIVERY
+      'Cape Town ↔ Johannesburg, door to door (road)': 6312,       // DOOR TO DOOR (Woodstock to Bedfordview / Sandton)
+      'Johannesburg → Cape Town airfreight, consolidated': 5375,   // DOMESTIC AIRFREIGHT / DOOR TO DOOR (also in the sheet)
+      'Johannesburg → Cape Town airfreight, not consolidated': 7500, // DOMESTIC AIRFREIGHT (also in the sheet)
+    },
+    weightPerKg: 45,                               // WEIGHT CHARGES: R45 per kg of gross weight on intercity freight
+    liabilityPct: 0.048,                           // LIABILITY CHARGE: 0.048% of the declared (customs) value
+    liabilityMinUsd: 50,                           // minimum liability charge: USD 50 at the invoice's USD/ZAR rate
     adminFee: 350,                                 // B35 / F23
     upliftGold: 4.5,                               // E32 "Replacement cost 4.50% (Gold)"
     upliftSilver: 8,                               // E34 "Replacement cost 8.00% (Silver)"
@@ -395,22 +405,25 @@
     gramsPerOz: 31.1035,                           // B12
   };
   const RATE_LABELS = {
-    vatPct: 'VAT %', surchargePerKg: 'Surcharge per kg over standard (R, excl VAT)', standardKg: 'Standard weight (kg)',
-    liabilityPct: 'Liability / insurance rate (% of insured value)', adminFee: 'Admin fee (R)', upliftGold: 'Gold replacement uplift %',
+    vatPct: 'VAT %', weightPerKg: 'Weight charge per gross kg (R, excl VAT)', liabilityMinUsd: 'Liability minimum (USD)',
+    liabilityPct: 'Liability rate (% of declared value)', adminFee: 'Admin fee (R)', upliftGold: 'Gold replacement uplift %',
     upliftSilver: 'Silver replacement uplift %', upliftPlatinum: 'Platinum replacement uplift % (assumed)', gramsPerOz: 'Grams per troy oz',
   };
   const METALS = { gold: 'Gold', silver: 'Silver', platinum: 'Platinum' };
   const SYMBOL = { gold: 'XAU', silver: 'XAG', platinum: 'XPT' };   // api.gold-api.com symbols (USD per troy oz, free, no key)
   const SIZES = { '1oz': { label: '1 oz', oz: 1 }, '1/2oz': { label: '1/2 oz', oz: .5 }, '1/4oz': { label: '1/4 oz', oz: .25 }, '1/10oz': { label: '1/10 oz', oz: .1 }, '1kg': { label: '1 kg bar', g: 1000 }, '100g': { label: '100 g bar', g: 100 }, 'custom': { label: 'Custom (g)' } };
   const newLine = (metal = 'gold') => ({ metal, size: '1oz', customG: 0, qty: 0, price: 0, manual: false });
-  const DEFAULT_INPUTS = { dest: 'JHB', lines: [{ metal: 'gold', size: '1oz', customG: 0, qty: 140, price: 73300, manual: false }], replacement: false, admin: true, surcharge: false, vatAll: false };
+  const ROUTE_KIND = r => /in-house/.test(r) ? 'inhouse' : /airfreight|door to door/.test(r) ? 'freight' : 'delivery';
+  const DEFAULT_INPUTS = { dest: 'Bedfordview ↔ Sandton / Pretoria / Centurion', lines: [{ metal: 'gold', size: '1oz', customG: 0, qty: 140, price: 73300, manual: false }], replacement: true, admin: false, surcharge: null, packKg: 0 };
 
   const $ = id => document.getElementById(id);
   const load = (k, d) => { try { const v = localStorage.getItem(k); return v ? { ...d, ...JSON.parse(v) } : JSON.parse(JSON.stringify(d)); } catch { return JSON.parse(JSON.stringify(d)); } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-  let rates = load('courier.brinks.rates.v1', DEFAULT_RATES);
+  let rates = load('courier.brinks.rates.v2', DEFAULT_RATES);
   let inp = load('courier.brinks.inputs.v2', DEFAULT_INPUTS);
-  rates.dest = { ...DEFAULT_RATES.dest, ...(rates.dest || {}) };
+  if (!rates.dest || !Object.keys(rates.dest).some(k => /in-house/.test(k))) rates = JSON.parse(JSON.stringify(DEFAULT_RATES));   // old sheet-based rates: replace
+  rates = { ...JSON.parse(JSON.stringify(DEFAULT_RATES)), ...rates, dest: { ...DEFAULT_RATES.dest, ...rates.dest } };
+  if (!(inp.dest in rates.dest)) inp = { ...JSON.parse(JSON.stringify(DEFAULT_INPUTS)), lines: inp.lines };
   if (!Array.isArray(inp.lines) || !inp.lines.length) inp.lines = [newLine()];
 
   const R = n => 'R ' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -419,31 +432,37 @@
   const lineLabel = l => `${METALS[l.metal] || l.metal} ${l.size === 'custom' ? N(+l.customG || 0, 0) + ' g' : SIZES[l.size].label}`;
 
   // ---------- The calculation (mirrors A11:B37 of the sheet; multi-line shipment sums spot, insured value and weight across lines) ----------
-  function calc(i, r) {
+  function calc(i, r, fx = 16.4) {
     const uplift = { gold: r.upliftGold, silver: r.upliftSilver, platinum: r.upliftPlatinum };
     const items = i.lines.map(l => {
       const g = gramsOf(l, r), spot = (+l.qty || 0) * (+l.price || 0);
-      const insured = spot * (1 + (i.replacement ? (uplift[l.metal] || 0) : 0) / 100);          // F17 = B20 + B20*4.5% (when replacement is on)
+      const insured = spot * (1 + (i.replacement ? (uplift[l.metal] || 0) : 0) / 100);          // declared value on the SLI
       return { ...l, g, kg: (+l.qty || 0) * g / 1000, spot, insured };
     });
-    const spot = items.reduce((s, x) => s + x.spot, 0);                                      // B20 = B19*B18, summed over lines
+    const spot = items.reduce((s, x) => s + x.spot, 0);
     const insured = items.reduce((s, x) => s + x.insured, 0);
     const units = items.reduce((s, x) => s + (+x.qty || 0), 0);
-    const insurance = insured * r.liabilityPct / 100;                                        // B21 = B20*A9/100
-    const totalKg = items.reduce((s, x) => s + x.kg, 0);                                     // B16
-    const excessKg = Math.max(0, Math.ceil(Math.round((totalKg - r.standardKg) * 1e6) / 1e6)); // B26 = ROUNDUP(B23-B24,0), floored at 0 (C28 note)
-    const delivery = r.dest[i.dest] ?? 0;                                                    // B27 = flat rate for destination
-    const surcharge = i.surcharge ? excessKg * r.surchargePerKg : 0;                         // B28 = B26*H5 (H5 incl VAT; here excl, VAT added below)
-    const admin = i.admin ? r.adminFee : 0;                                                  // B35
+    const totalKg = items.reduce((s, x) => s + x.kg, 0);
+    const grossKg = totalKg + (+i.packKg || 0);
+    const kind = ROUTE_KIND(i.dest);
+    const c2 = n => Math.round(n * 100) / 100;
+    const base = r.dest[i.dest] ?? 0;
+    const liabMin = c2(r.liabilityMinUsd * fx);
+    const liabPct = insured * r.liabilityPct / 100;
+    const liability = kind === 'inhouse' ? 0 : Math.max(Math.floor(Math.round(liabPct * 1e4) / 100) / 100, liabMin);   // Brinks truncates to the cent
+    const weightOn = kind === 'freight' && (i.surcharge === null || i.surcharge === undefined ? true : !!i.surcharge);
+    const weight = weightOn ? c2(grossKg * r.weightPerKg) : 0;
+    const extraAdmin = i.admin ? r.adminFee : 0;
     const v = r.vatPct / 100;
+    const baseLabel = kind === 'inhouse' ? 'Administration fee' : kind === 'freight' ? (/airfreight/.test(i.dest) ? 'Domestic airfreight' : 'Door to door') : 'Delivery';
     const lines = [
-      { key: 'delivery',  label: 'Delivery',              sub: i.dest + ' flat rate',                                   ex: delivery,  vat: delivery * v, on: true },
-      { key: 'surcharge', label: 'Weight surcharge',      sub: excessKg + ' kg over ' + r.standardKg + ' kg × ' + R(r.surchargePerKg), ex: surcharge, vat: surcharge * v, on: i.surcharge },
-      { key: 'insurance', label: 'Insurance / liability', sub: N(r.liabilityPct, 3) + '% of ' + R(insured),           ex: insurance, vat: i.vatAll ? insurance * v : 0, on: true },
-      { key: 'admin',     label: 'Admin fee',             sub: i.admin ? 'package opened / tampered' : 'not charged',   ex: admin,     vat: i.vatAll ? admin * v : 0, on: i.admin },
+      { key: 'delivery',  label: baseLabel,          sub: i.dest, ex: base, vat: c2(base * v), on: true },
+      { key: 'surcharge', label: 'Weight charges',   sub: N(grossKg, 2) + ' kg gross × ' + R(r.weightPerKg), ex: weight, vat: c2(weight * v), on: weightOn },
+      { key: 'insurance', label: 'Liability charge', sub: kind === 'inhouse' ? 'none on in-house moves' : (liabPct < liabMin ? 'minimum USD ' + r.liabilityMinUsd + ' at R' + N(fx, 4) : N(r.liabilityPct, 3) + '% of ' + R(insured)), ex: liability, vat: c2(liability * v), on: kind !== 'inhouse' },
+      { key: 'admin',     label: 'Extra admin fee',  sub: 'e.g. second parcel or package opened', ex: extraAdmin, vat: c2(extraAdmin * v), on: !!i.admin },
     ];
-    const ex = lines.reduce((s, l) => s + l.ex, 0), vat = lines.reduce((s, l) => s + l.vat, 0);
-    return { items, units, spot, insured, totalKg, excessKg, lines, ex, vat, total: ex + vat, pct: spot ? (ex + vat) / spot : 0, perUnit: units ? (ex + vat) / units : 0 };
+    const ex = c2(lines.reduce((s, l) => s + l.ex, 0)), vat = c2(lines.reduce((s, l) => s + l.vat, 0));
+    return { items, units, spot, insured, totalKg, grossKg, kind, excessKg: 0, lines, ex, vat, total: c2(ex + vat), pct: spot ? (ex + vat) / spot : 0, perUnit: units ? (ex + vat) / units : 0 };
   }
 
   // ---------- Live spot: USD/oz per metal from api.gold-api.com, USD→ZAR from open.er-api.com (daily). Line price = R/oz × line weight in oz. ----------
@@ -486,7 +505,7 @@
     div.querySelector('input').oninput = e => {
       const n = parseFloat(e.target.value); if (isNaN(n)) return;
       if (key.startsWith('dest.')) rates.dest[key.slice(5)] = n; else rates[key] = n;
-      save('courier.brinks.rates.v1', rates); applyLive();
+      save('courier.brinks.rates.v2', rates); applyLive();
     };
     return div;
   }
@@ -520,22 +539,31 @@
   }
   function readOptions() {
     inp.dest = $('dest').value;
-    for (const k of ['replacement', 'admin', 'surcharge', 'vatAll']) inp[k] = $(k).getAttribute('aria-checked') === 'true';
+    for (const k of ['replacement', 'admin']) inp[k] = $(k).getAttribute('aria-checked') === 'true';
+    inp.surcharge = $('surcharge').dataset.manual ? $('surcharge').getAttribute('aria-checked') === 'true' : null;
+    inp.packKg = +$('packKg').value || 0;
   }
-  function writeOptions() { for (const k of ['replacement', 'admin', 'surcharge', 'vatAll']) $(k).setAttribute('aria-checked', !!inp[k]); }
+  function writeOptions() {
+    for (const k of ['replacement', 'admin']) $(k).setAttribute('aria-checked', !!inp[k]);
+    if (inp.surcharge === null || inp.surcharge === undefined) delete $('surcharge').dataset.manual; else { $('surcharge').dataset.manual = '1'; $('surcharge').setAttribute('aria-checked', !!inp.surcharge); }
+    $('packKg').value = inp.packKg || 0;
+  }
   let last;
   function render() {
     readOptions(); save('courier.brinks.inputs.v2', inp);
-    const c = last = calc(inp, rates);
+    const c = last = calc(inp, rates, live.zar || 16.4);
     $('kSpot').textContent = R(c.spot); $('kInsured').textContent = R(c.insured);
-    $('kKg').textContent = N(c.totalKg, 2) + ' kg'; $('kExcess').textContent = c.excessKg + ' kg'; $('totalKg').textContent = N(c.totalKg, 3) + ' kg';
+    $('kKg').textContent = N(c.grossKg, 2) + ' kg'; $('kExcess').textContent = { inhouse: 'In-house', delivery: 'Delivery', freight: 'Freight' }[c.kind]; $('totalKg').textContent = N(c.totalKg, 3) + ' kg';
     $('rows').innerHTML = c.lines.map(l => `<tr class="${l.on ? '' : 'off'}"><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td class="${l.vat ? '' : 'muted'}">${R(l.vat)}</td><td>${R(l.ex + l.vat)}</td></tr>`).join('');
     $('tEx').textContent = R(c.ex); $('tVat').textContent = R(c.vat); $('tInc').textContent = R(c.total);
     $('kPct').textContent = N(c.pct * 100, 4) + '%'; $('kUnit').textContent = R(c.perUnit);
     $('stamp').textContent = new Date().toLocaleDateString('en-ZA');
     const notes = [];
-    if (c.excessKg > 0 && !inp.surcharge) notes.push(`<b>${c.excessKg} kg over the ${rates.standardKg} kg standard</b> but the surcharge is off. That matches the sheet for local runs. Switch it on if BRINKS bills weight on this route.`);
-    if (!inp.vatAll) notes.push(`VAT is on the delivery line only, as in the sheet's "Summary of Cost". Switch <b>VAT on insurance &amp; admin</b> on to VAT every line (the sheet's other block does that).`);
+    const wsw = $('surcharge'); wsw.disabled = c.kind !== 'freight'; wsw.style.opacity = c.kind === 'freight' ? 1 : .5;
+    if (!wsw.dataset.manual) wsw.setAttribute('aria-checked', c.kind === 'freight');
+    if (c.kind === 'inhouse') notes.push('In-house move at Brinks Bedfordview: Brinks bills only the R350 administration fee, no liability. That is how 101 of your SLI invoices were charged.');
+    if (c.kind === 'freight') notes.push(`Intercity freight: Brinks bills R${N(rates.weightPerKg, 0)} per kg of <b>gross</b> weight (box included). Add the packaging weight.`);
+    notes.push('VAT is charged on every line, liability included, as on every Brinks invoice in 2026.');
     if (inp.replacement && inp.lines.some(l => l.metal === 'platinum')) notes.push('Platinum replacement uplift is not in the sheet. 4.5% (same as gold) is assumed. Confirm with BRINKS.');
     $('note').innerHTML = notes.join('<br>'); $('note').style.display = notes.length ? '' : 'none';
   }
@@ -544,7 +572,7 @@
     const c = last, i = inp;
     const ship = c.items.filter(x => x.qty > 0).map(x => `  ${x.qty} × ${lineLabel(x)} @ ${R(x.price)} = ${R(x.spot)}`).join('\n');
     const l = c.lines.filter(x => x.on).map(x => `${x.label.padEnd(24)} ${R(x.ex + x.vat).padStart(14)}`).join('\n');
-    return `BRINKS courier fee – ${new Date().toLocaleDateString('en-ZA')}\nDestination: ${i.dest}\nShipment:\n${ship}\nSpot ${R(c.spot)} · insured ${R(c.insured)}\nWeight: ${N(c.totalKg)} kg (${c.excessKg} kg over ${rates.standardKg} kg)\n\n${l}\n${'Total excl VAT'.padEnd(24)} ${R(c.ex).padStart(14)}\n${'VAT'.padEnd(24)} ${R(c.vat).padStart(14)}\n${'TOTAL incl VAT'.padEnd(24)} ${R(c.total).padStart(14)}\nLogistics cost: ${N(c.pct * 100, 4)}% of spot`;
+    return `BRINKS courier fee – ${new Date().toLocaleDateString('en-ZA')}\nDestination: ${i.dest}\nShipment:\n${ship}\nSpot ${R(c.spot)} · insured ${R(c.insured)}\nWeight: ${N(c.grossKg)} kg gross\n\n${l}\n${'Total excl VAT'.padEnd(24)} ${R(c.ex).padStart(14)}\n${'VAT'.padEnd(24)} ${R(c.vat).padStart(14)}\n${'TOTAL incl VAT'.padEnd(24)} ${R(c.total).padStart(14)}\nLogistics cost: ${N(c.pct * 100, 4)}% of spot`;
   }
 
   // ---------- Quote card (screenshot-ready) ----------
@@ -558,7 +586,7 @@
     $('qRows').innerHTML = c.lines.filter(l => l.on).map(l => `<tr><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td>${R(l.vat)}</td><td>${R(l.ex + l.vat)}</td></tr>`).join('') +
       `<tr><td>Subtotal</td><td>${R(c.ex)}</td><td>${R(c.vat)}</td><td>${R(c.total)}</td></tr>` +
       `<tr class="grand"><td>Total delivery charge<small>incl. VAT</small></td><td></td><td></td><td>${R(c.total)}</td></tr>`;
-    $('qFoot').innerHTML = `<div>Logistics cost <b>${N(c.pct * 100, 4)}%</b> of spot · per unit <b>${R(c.perUnit)}</b></div><div>${i.replacement ? 'Insured at replacement value' : 'Insured at spot'} · ${i.surcharge ? 'weight surcharge applied' : 'no weight surcharge (local run)'} · ${i.vatAll ? 'VAT on all lines' : 'VAT on delivery only'}</div>`;
+    $('qFoot').innerHTML = `<div>Logistics cost <b>${N(c.pct * 100, 4)}%</b> of spot · per unit <b>${R(c.perUnit)}</b></div><div>${i.replacement ? 'Insured at replacement value' : 'Insured at spot'} · ${c.lines[1].on ? 'weight charged on gross kg' : 'no weight charge'} · VAT on all lines</div>`;
   }
   $('quoteBtn').onclick = () => { $('qTitle').textContent = 'BRINKS delivery cost'; fillQuote(); $('overlay').classList.add('on'); };
   $('qClose').onclick = () => $('overlay').classList.remove('on');
@@ -566,10 +594,12 @@
 
   buildDest(); buildRates(); writeOptions(); renderLines(); render();
   $('dest').addEventListener('change', render);
-  for (const id of ['replacement', 'admin', 'surcharge', 'vatAll']) $(id).onclick = e => { e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
+  for (const id of ['replacement', 'admin', 'surcharge']) $(id).onclick = e => { if (e.currentTarget.disabled) return; if (id === 'surcharge') e.currentTarget.dataset.manual = '1'; e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
+  $('packKg').addEventListener('input', render);
+  $('dest').addEventListener('change', () => { delete $('surcharge').dataset.manual; render(); });
   $('addLine').onclick = () => { const l = newLine(inp.lines.some(x => x.metal === 'gold') ? 'silver' : 'gold'); if (live.zar) l.price = Math.round(livePrice(l) * 100) / 100; inp.lines.push(l); renderLines(); render(); };
   $('reset').onclick = () => { inp = JSON.parse(JSON.stringify(DEFAULT_INPUTS)); buildDest(); writeOptions(); applyLive(); };
-  $('resetRates').onclick = () => { rates = JSON.parse(JSON.stringify(DEFAULT_RATES)); save('courier.brinks.rates.v1', rates); buildDest(); buildRates(); applyLive(); };
+  $('resetRates').onclick = () => { rates = JSON.parse(JSON.stringify(DEFAULT_RATES)); save('courier.brinks.rates.v2', rates); buildDest(); buildRates(); applyLive(); };
   $('copy').onclick = async () => { try { await navigator.clipboard.writeText(summaryText()); toast('Summary copied'); } catch { toast('Copy blocked by browser'); } };
   function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1600); }
   fetchLive().then(() => { if (new URLSearchParams(location.search).has('quote')) $('quoteBtn').click(); });   // ?quote opens the card (previews)
@@ -875,9 +905,16 @@
     const clone = o => JSON.parse(JSON.stringify(o));
     const get = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : clone(d); } catch { return clone(d); } };
     const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-    const DEF = { svc: 'ONX', from: 'JNB', fromSub: '', to: 'CPT', toSub: 'Woodstock (Cape Town)', loc: 'Business premises', kg: 0.5, l: 25, w: 20, h: 10, time: 'none', pin: true };
+    // Our usual collection points (Abdullah, 25 Sep 2026): 99% of MDS parcels leave from one of these.
+    const POINTS = {
+      sab: { name: 'SA Bullion Bedfordview (JHB)', hub: 'JNB', sub: 'Bedfordview (Germiston)' },
+      brk: { name: 'BRINKS Bedfordview (JHB)',     hub: 'JNB', sub: 'Bedfordview (Germiston)' },
+      cpt: { name: 'SA Bullion Woodstock (CPT)',   hub: 'CPT', sub: 'Woodstock (Cape Town)' },
+      other: { name: 'Other address' }
+    };
+    const DEF = { svc: 'ONX', point: 'sab', from: 'JNB', fromSub: 'Bedfordview (Germiston)', to: 'CPT', toSub: 'Woodstock (Cape Town)', loc: 'Business premises', kg: 0.5, l: 30, w: 20, h: 10, time: 'none', pin: true };
     let rates = { ...clone(MDS_RATES), ...get('courier.mds.rates.v1', MDS_RATES) };
-    let inp = { ...clone(DEF), ...get('courier.mds.inputs.v2', DEF) };
+    let inp = { ...clone(DEF), ...get('courier.mds.inputs.v3', DEF) };
     const SEL = [['mSvc', 'svc'], ['mFrom', 'from'], ['mTo', 'to'], ['mLoc', 'loc'], ['mTime', 'time']];
     const NUM = [['mKg', 'kg'], ['mL', 'l'], ['mW', 'w'], ['mH', 'h']];
     const codes = MDS_DATA.hubs.map(h => h[0]);
@@ -913,19 +950,22 @@
       $('mSvc').innerHTML = Object.entries(MDS_DATA.svc).map(([k, s]) => '<option value="' + k + '">' + s.name + ' (' + k + ')</option>').join('');
       const hubs = MDS_DATA.hubs.map(([c, n]) => '<option value="' + c + '">' + n + ' · ' + c + '</option>').join('');
       $('mFrom').innerHTML = hubs; $('mTo').innerHTML = hubs;
+      $('mPoint').innerHTML = Object.entries(POINTS).map(([k, pt]) => '<option value="' + k + '">' + pt.name + '</option>').join('');
       $('mLoc').innerHTML = Object.entries(rates.loc).map(([k, v]) => '<option value="' + k + '">' + k + (v ? ' · R' + v : '') + '</option>').join('');
       $('mTime').innerHTML = Object.entries(MDS_TIME_LABELS).map(([k, l]) => '<option value="' + k + '">' + l + (rates.time[k] ? ' · R' + N(rates.time[k]) : '') + '</option>').join('');
     }
     function writeInputs() {
       for (const [id, k] of SEL) $(id).value = inp[k];
       for (const [id, k] of NUM) $(id).value = inp[k];
+      $('mPoint').value = inp.point in POINTS ? inp.point : 'other';
       $('mFromSub').value = inp.fromSub || ''; $('mToSub').value = inp.toSub || ''; $('mPin').setAttribute('aria-checked', !!inp.pin);
     }
     function readInputs() {
       for (const [id, k] of SEL) inp[k] = $(id).value;
       for (const [id, k] of NUM) inp[k] = +$(id).value || 0;
+      inp.point = $('mPoint').value;
       inp.fromSub = $('mFromSub').value.trim(); inp.toSub = $('mToSub').value.trim(); inp.pin = $('mPin').getAttribute('aria-checked') === 'true';
-      put('courier.mds.inputs.v2', inp);
+      put('courier.mds.inputs.v3', inp);
     }
     function derive() {
       const fs = resolve(inp.fromSub, inp.from), ts = resolve(inp.toSub, inp.to);
@@ -1008,12 +1048,19 @@
 
     build(); buildRates(); writeInputs(); render();
     for (const [id] of SEL) $(id).addEventListener('change', () => {
-      if (id === 'mFrom') $('mFromSub').value = '';
+      if (id === 'mFrom') { $('mFromSub').value = ''; $('mPoint').value = 'other'; }
       if (id === 'mTo') $('mToSub').value = '';
       readInputs(); fillLists(); render();
     });
     for (const [id] of NUM) $(id).addEventListener('input', render);
     for (const id of ['mFromSub', 'mToSub']) { $(id).addEventListener('input', render); $(id).addEventListener('change', render); }
+    // Picking a collection point fills hub + suburb; typing a different suburb switches the picker to "Other address".
+    $('mPoint').addEventListener('change', () => {
+      const pt = POINTS[$('mPoint').value];
+      if (pt.hub) { $('mFrom').value = pt.hub; $('mFromSub').value = pt.sub; }
+      readInputs(); fillLists(); render();
+    });
+    $('mFromSub').addEventListener('input', () => { const pt = POINTS[$('mPoint').value]; if (pt.hub && $('mFromSub').value.trim() !== pt.sub) { $('mPoint').value = 'other'; readInputs(); } });
     $('mPin').onclick = e => { e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
     $('mReset').onclick = () => { inp = clone(DEF); writeInputs(); fillLists(); render(); };
     $('mResetRates').onclick = () => { rates = clone(MDS_RATES); put('courier.mds.rates.v1', rates); buildRates(); render(); };
