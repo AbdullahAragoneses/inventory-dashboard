@@ -190,10 +190,11 @@
     { id: 'proof',   icon: 'ic-coins',     label: 'Proof Coins',  tint: 'warning',   url: 'https://proof-dashboard-eight.vercel.app/',          blurb: 'Capture proof coins, attach photos, and feed the public catalogue.' },
     { id: 'stock',   icon: 'ic-stocktake', label: 'Stock Take',   tint: 'info',      url: 'https://stock-take-dashboard-seven.vercel.app/',     blurb: 'Vault stock takes with counted-vs-expected checks. Replaces the paper count.' },
     { id: 'sli',     icon: 'ic-sli',       label: 'SLI',          tint: 'secondary', url: 'https://abdullaharagoneses.github.io/sli-generator/', blurb: 'Shipper’s Letter of Instruction generator with a shared invoice counter.' },
+    { id: 'serials', icon: 'ic-serial',    label: 'Serial Numbers', tint: 'info',    url: 'http://127.0.0.1:8790/',                          blurb: '1kg and 500g SABIS bars and the Orlando Pirates coin: number registers fed from the Buying Schedule, with every check built in.' },   // local until the Vercel deploy
     { id: 'courier', icon: 'ic-courier',   label: 'Courier Fees', tint: 'success',   url: 'courier/?v=20260926b',                                           blurb: 'BRINKS, RAM and MDS delivery cost calculators, checked against real invoices and waybills.' },
   ];
   const TINT = { warning: ['var(--warning-tint)', 'var(--warning-darker)'], info: ['var(--info-tint)', 'var(--info-darker)'], secondary: ['var(--secondary-tint)', 'var(--secondary-darker)'], success: ['var(--success-tint)', 'var(--success-dark)'] };
-  const LOCAL = { proof: 'http://127.0.0.1:8789/', stock: 'http://127.0.0.1:8000/', sli: 'http://127.0.0.1:8788/' };
+  const LOCAL = { proof: 'http://127.0.0.1:8789/', stock: 'http://127.0.0.1:8000/', sli: 'http://127.0.0.1:8788/', serials: 'http://127.0.0.1:8790/' };
   if (location.search.includes('local')) for (const a of APPS) if (LOCAL[a.id]) a.url = LOCAL[a.id];
   for (const a of APPS) if (a.url) a.url = new URL(a.url, location.href).href;   // relative pages (courier/) live in this repo
 
