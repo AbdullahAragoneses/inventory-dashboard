@@ -173,3 +173,16 @@ Jan statement invoices 180755-180874 and 181355/181368 have no PDF in SharePoint
 `inventory-dashboard` is a PUBLIC GitHub repo served on GitHub Pages. The courier page now embeds negotiated account
 pricing (MDS rate sheet, RAM quote figures, BRINKS rates). Pushing publishes them. Decide before pushing: make the
 repo private (Pages then needs a paid plan) or host the courier page somewhere access-controlled.
+
+## 2026-09-25 teal trial (uncommitted)
+- Black accents replaced with Venice Blue teal shades in the hub, Courier Fees and the three embedded apps (local copies); header bars use the teal sheen gradient.
+- MDS: "Collection point" picker (SA Bullion Bedfordview / BRINKS Bedfordview / SA Bullion Woodstock / Other) fills hub + suburb; default parcel 0.5 kg, 30×20×10 cm.
+- Courier input column widened to 580px max.
+- Pending: Abdullah's approval, then commit + deploy per app. Ideas offered: collection point name on the MDS quote card; same picker on RAM.
+
+## Serial Numbers section (2026-09-26)
+Sidebar entry `serials` opens the Serial Number Trackers app (1kg / 500g SABIS bars + OP coin; repo
+`AbdullahAragoneses/serial-number-trackers`, private). It runs **only on Abdullah's PC for now**
+(http://127.0.0.1:8790, started by Task Scheduler), so the entry carries `localOnly: true` and is hidden
+on the public site: it shows on 127.0.0.1/localhost or with `?local`. When the app is hosted (Vercel +
+Turso), set its real URL in `APPS` and drop `localOnly`.
