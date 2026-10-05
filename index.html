@@ -237,6 +237,11 @@
 
   function setOpen(open) { sidebar.classList.toggle('closed', !open); save('invdash2.open', open ? '1' : '0'); }
   $('hideBtn').onclick = () => setOpen(sidebar.classList.contains('closed'));
+  // A click anywhere outside the menu collapses it. Clicks inside an app never reach this page,
+  // so a click in the frame is caught by this window losing focus to the iframe.
+  const collapse = () => { if (!sidebar.classList.contains('closed')) setOpen(false); };
+  document.addEventListener('pointerdown', e => { if (!sidebar.contains(e.target)) collapse(); });
+  addEventListener('blur', () => setTimeout(() => { if (document.activeElement === frame) collapse(); }, 0));
 
   function setTheme(t) { document.documentElement.dataset.theme = t; save('invdash2.theme', t); pushTheme(); }
   function pushTheme() { try { if (!frameWrap.hidden && frame.contentWindow) frame.contentWindow.postMessage({ type: 'invdash-theme', theme: document.documentElement.dataset.theme }, '*'); } catch {} }
