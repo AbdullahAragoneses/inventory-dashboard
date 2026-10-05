@@ -186,3 +186,10 @@ Sidebar entry `serials` opens the Serial Number Trackers app (1kg / 500g SABIS b
 (http://127.0.0.1:8790, started by Task Scheduler), so the entry carries `localOnly: true` and is hidden
 on the public site: it shows on 127.0.0.1/localhost or with `?local`. When the app is hosted (Vercel +
 Turso), set its real URL in `APPS` and drop `localOnly`.
+
+## Product Uploads (2026-10-05)
+Sidebar entry `products` opens **https://product-uploads.vercel.app** — a separate PRIVATE app (repo
+`AbdullahAragoneses/product-uploads`, Vercel team bullion-boeties, private Blob store in Cape Town) with its own
+name + password login. Nothing about the products lives in this public repo; see that repo's PROJECT_SUMMARY.md.
+`serve.py` here (Task Scheduler "Inventory Dashboard - Server") still serves the hub preview on 127.0.0.1:8787; it is
+local only and not committed. The earlier local version of the page is retired.
