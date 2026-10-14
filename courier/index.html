@@ -150,6 +150,7 @@
   <button class="tab on" data-view="brinks">BRINKS</button>
   <button class="tab" data-view="ram">RAM</button>
   <button class="tab" data-view="mds">MDS</button>
+  <button class="tab" data-view="sab">SA BULLION</button>
 </div>
 
 <!-- ================= BRINKS ================= -->
@@ -360,6 +361,62 @@
       <div class="rates" id="mRates"></div>
       <div class="live" style="margin-top:8px">Per-kg rates and minimum charges for all 32 hubs and 4 services come from the rate sheet PDF and are built in. Ask MDS for a new rate sheet when prices change.</div>
       <div class="actions"><button class="btn" id="mResetRates">Reset to rate sheet</button></div>
+    </div>
+  </details>
+</div>
+
+<!-- ================= SA BULLION: our own vehicle + security delivery in Cape Town (not a courier) ================= -->
+<div class="view" id="view-sab">
+  <div class="cols">
+    <div>
+      <div class="card">
+        <h3>Own delivery <small>Cape Town · SA Bullion vehicle and security</small></h3>
+        <div class="body">
+          <div class="sub-h">Lines <span style="font-weight:400;text-transform:none;letter-spacing:0">· metal and ounces; gold and silver can share one delivery</span></div>
+          <div id="sLines"></div>
+          <button class="add" id="sAddLine">+ Add line</button>
+          <div class="live" id="sLive" style="margin-top:8px"></div>
+          <div class="sub-h">Options</div>
+          <div class="field chk"><label>Insured delivery <small>liability cover on the metal value</small></label><button class="switch" id="sIns" role="switch" aria-checked="true"></button></div>
+          <div class="actions"><button class="btn" id="sReset">Reset inputs</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Client quote <small id="sStamp"></small></h3>
+        <div class="body">
+          <div class="kpis">
+            <div class="kpi"><span>Metal value</span><b id="skValue">–</b></div>
+            <div class="kpi"><span>Ounces</span><b id="skOz">–</b></div>
+            <div class="kpi"><span>Cover bands</span><b id="skBands">–</b></div>
+          </div>
+          <table>
+            <thead><tr><th>Line</th><th>Excl VAT</th><th>VAT</th><th>Incl VAT</th></tr></thead>
+            <tbody id="sRows"></tbody>
+            <tfoot><tr class="total"><td>Total to charge client</td><td id="sEx"></td><td id="sVat"></td><td id="sInc"></td></tr></tfoot>
+          </table>
+          <div class="note" id="sNote"></div>
+          <div class="actions"><button class="btn primary" id="sQuoteBtn">Quote card</button><button class="btn" id="sCopy">Copy summary</button></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <h3>Our insurance <small>internal: do not send to the client</small></h3>
+        <div class="body">
+          <table><tbody id="sOwn"></tbody></table>
+          <div class="note" id="sOwnNote"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details class="card" style="margin-top:24px">
+    <summary>Rate card <small>SA Bullion own-delivery prices, excl VAT; VAT added on top. Saved in this browser.</small></summary>
+    <div class="body">
+      <div class="rates" id="sRates"></div>
+      <div class="actions"><button class="btn" id="sResetRates">Reset to standard prices</button></div>
     </div>
   </details>
 </div>
@@ -1068,6 +1125,151 @@
     $('mQuoteBtn').onclick = () => { fillQuote(); $('overlay').classList.add('on'); };
     if (new URLSearchParams(location.search).has('mdsquote')) { document.querySelector('.tab[data-view="mds"]').click(); $('mQuoteBtn').click(); }
     window.MdsCalc = { mdsCalc, MDS_RATES, MDS_DATA };
+  })();
+</script>
+<script>
+  // ================= SA BULLION: our own delivery in Cape Town (own vehicle + security), NOT a courier quote =================
+  // One rule for every quote (Abdullah, 14 Oct 2026). Prices are excl VAT; VAT is added on top.
+  // Anchor: 103 oz gold, R7,055,023.11 = R10,000 excl VAT (R11,500 incl):
+  //   * delivery fee: flat, Cape Town only for now (R2,000)
+  //   * liability:    R1,000 per R1 million of metal value, or part thereof (R7.06m = 8 bands = R8,000)
+  // Metal value = ounces × live spot per oz (same feed as the BRINKS tab), or a typed price.
+  // Our own cost: specie policy cover for own-vehicle movements, 0.035% per movement up to R5m
+  // (15. RAM\RAM Insurance\RAM Tranfers Insurance Cover.xlsx, same figures as the RAM tab's own-vehicle card).
+  // @@SAB-CALC-START
+  const SAB_RATES = {
+    vatPct: 15,
+    deliveryFee: 2000,       // Cape Town, excl VAT
+    bandSize: 1000000,       // liability is charged per started R1m of value
+    perBand: 1000,           // R per band, excl VAT
+    ownInsPct: 0.035,        // our specie policy, per own-vehicle movement
+    ownMax: 5000000,         // policy limit per own-vehicle movement
+  };
+  const SAB_METALS = { gold: 'Gold', silver: 'Silver' };
+  const SAB_DEFAULT_INPUTS = { lines: [{ metal: 'gold', oz: 103, price: 68495.37, manual: false }], ins: true };
+  function sabCalc(i, r) {
+    const c2 = n => Math.round(n * 100) / 100;
+        const items = i.lines.map(l => ({ ...l, value: c2((+l.oz || 0) * (+l.price || 0)) }));
+    const value = c2(items.reduce((s, x) => s + x.value, 0));
+    const oz = items.reduce((s, x) => s + (+x.oz || 0), 0);
+    const bands = i.ins && value > 0 ? Math.ceil(value / r.bandSize - 1e-9) : 0;
+    const fee = r.deliveryFee, liab = bands * r.perBand;
+    const mk = (label, sub, ex, on) => { const vat = c2(ex * r.vatPct / 100); return { label, sub, ex, vat, inc: c2(ex + vat), on }; };
+    const lines = [
+      mk('Delivery fee', 'Cape Town · SA Bullion vehicle and security', fee, true),
+      mk('Liability cover', `${bands} × ${R(r.perBand)} per R1 million of metal value or part thereof`, liab, !!i.ins),
+    ];
+    const ex = c2(fee + liab), vat = c2(lines.reduce((s, l) => s + (l.on ? l.vat : 0), 0));
+    const ownCost = c2(Math.min(value, r.ownMax) * r.ownInsPct / 100);
+    return { items, value, oz, bands, fee, liab, lines, ex, vat, total: c2(ex + vat),
+             ownCost, ownOver: value > r.ownMax, trips: Math.max(1, Math.ceil(value / r.ownMax - 1e-9)) };
+  }
+  // @@SAB-CALC-END
+
+  (() => {
+    const $ = id => document.getElementById(id);
+    const clone = o => JSON.parse(JSON.stringify(o));
+    const get = (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : clone(d); } catch { return clone(d); } };
+    const put = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+    let srates = { ...clone(SAB_RATES), ...get('courier.sab.rates.v4', SAB_RATES) };
+    let sinp = { ...clone(SAB_DEFAULT_INPUTS), ...get('courier.sab.inputs.v3', SAB_DEFAULT_INPUTS) };
+    if (!Array.isArray(sinp.lines) || !sinp.lines.length) sinp.lines = clone(SAB_DEFAULT_INPUTS.lines);
+    let slast, seenLive = null;
+
+    // Live spot per oz in Rand comes from the BRINKS tab's feed (top-level `live` / `perOz` in the first script).
+    const spot = m => (typeof live !== 'undefined' && live.zar ? Math.round(perOz(m) * 100) / 100 : 0);
+    function applySpot() { for (const l of sinp.lines) if (!l.manual && spot(l.metal)) l.price = spot(l.metal); }
+
+    function renderLines() {
+      const box = $('sLines'); box.innerHTML = '';
+      sinp.lines.forEach((l, idx) => {
+        const div = document.createElement('div'); div.className = 'line';
+        div.innerHTML = `
+          <div class="r1" style="grid-template-columns:1.1fr 1fr 34px">
+            <select data-k="metal">${Object.entries(SAB_METALS).map(([k, v]) => `<option value="${k}" ${l.metal === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+            <input data-k="oz" type="number" min="0" step="any" value="${l.oz}" placeholder="ounces">
+            <button class="x" title="Remove line" ${sinp.lines.length === 1 ? 'disabled' : ''}>×</button>
+          </div>
+          <div class="r2">
+            <span class="meta">Price per oz <span class="pill ${l.manual ? 'manual' : ''}">${l.manual ? 'MANUAL' : 'LIVE'}</span> ${l.manual && spot(l.metal) ? `<a class="useLive" style="color:var(--success-dark);cursor:pointer;text-decoration:underline">use live ${R(spot(l.metal))}</a>` : ''}<br><b class="val">${R((+l.oz || 0) * (+l.price || 0))}</b> metal value</span>
+            <div class="prefix"><input data-k="price" type="number" min="0" step="0.01" value="${l.price}"></div>
+          </div>`;
+        div.querySelectorAll('[data-k]').forEach(el => el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', e => {
+          const k = e.target.dataset.k; l[k] = e.target.type === 'number' ? +e.target.value : e.target.value;
+          if (k === 'price') l.manual = true;
+          if (k === 'metal') { if (!l.manual) l.price = spot(l.metal) || l.price; renderLines(); }
+          else div.querySelector('.val').textContent = R((+l.oz || 0) * (+l.price || 0));
+          if (k === 'price') { const p = div.querySelector('.pill'); p.className = 'pill manual'; p.textContent = 'MANUAL'; }
+          render();
+        }));
+        const ul = div.querySelector('.useLive'); if (ul) ul.onclick = () => { l.manual = false; applySpot(); renderLines(); render(); };
+        div.querySelector('.x').onclick = () => { sinp.lines.splice(idx, 1); renderLines(); render(); };
+        box.appendChild(div);
+      });
+    }
+    function render() {
+      sinp.ins = $('sIns').getAttribute('aria-checked') === 'true';
+      put('courier.sab.inputs.v3', sinp);
+      const c = slast = sabCalc(sinp, srates);
+      $('sLive').innerHTML = spot('gold')
+        ? `<span class="pill">LIVE</span> Au ${R(spot('gold'))} · Ag ${R(spot('silver'))} per oz · ${live.at.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}`
+        : (live && live.err ? `<span class="pill manual">OFFLINE</span> live spot unavailable; type the price per oz` : 'Fetching live spot…');
+      $('skValue').textContent = R(c.value); $('skOz').textContent = N(c.oz, 2) + ' oz';
+      $('skBands').textContent = sinp.ins ? c.bands + ' × R1m' : 'None';
+      $('sRows').innerHTML = c.lines.map(l => `<tr class="${l.on ? '' : 'off'}"><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td>${R(l.vat)}</td><td>${R(l.inc)}</td></tr>`).join('');
+      $('sEx').textContent = R(c.ex); $('sVat').textContent = R(c.vat); $('sInc').textContent = R(c.total);
+      $('sStamp').textContent = new Date().toLocaleDateString('en-ZA');
+      const notes = [`<b>Same basis every time:</b> delivery fee ${R(srates.deliveryFee)} plus ${R(srates.perBand)} liability per R1 million of metal value or part thereof. Prices excl VAT; VAT at ${N(srates.vatPct, 0)}% is added on top.`];
+      if (!sinp.ins) notes.push('<b>Uninsured:</b> the client carries the risk in transit. Get that in writing before quoting without cover.');
+      $('sNote').innerHTML = notes.join('<br>');
+      $('sOwn').innerHTML = [['Policy rate', N(srates.ownInsPct, 3) + '% per movement'], ['Policy cost (excl VAT)', R(c.ownCost) + (c.ownOver ? ' · first ' + R(srates.ownMax) + ' only' : '')], ['Liability charged to client (excl VAT)', R(c.liab)]]
+        .map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('');
+      $('sOwnNote').innerHTML = c.ownOver
+        ? `<b>Over ${R(srates.ownMax)}: our policy does not cover this in one movement.</b> It covers own-vehicle movements up to ${R(srates.ownMax)}. Split it into ${c.trips} trips, or arrange extra cover before we deliver.`
+        : `Covered by our specie policy: ${N(srates.ownInsPct, 3)}% per own-vehicle movement, up to ${R(srates.ownMax)}.`;
+      $('sOwnNote').style.background = c.ownOver ? 'var(--error-tint)' : 'var(--success-tint)';
+    }
+    function buildRates() {
+      $('sRates').innerHTML = '';
+      const labels = { deliveryFee: 'Delivery fee, Cape Town (R, excl VAT)', perBand: 'Liability per band (R, excl VAT)', bandSize: 'Band size (R of metal value)',
+        ownInsPct: 'Our policy rate % per movement', ownMax: 'Our policy limit per movement (R)', vatPct: 'VAT %' };
+      for (const [k, lbl] of Object.entries(labels)) {
+        const d = document.createElement('div'); d.className = 'field';
+        d.innerHTML = `<label>${lbl}</label><input type="number" step="any" value="${srates[k]}">`;
+        d.querySelector('input').oninput = e => { const n = parseFloat(e.target.value); if (isNaN(n)) return; srates[k] = n; put('courier.sab.rates.v4', srates); render(); };
+        $('sRates').appendChild(d);
+      }
+    }
+    const lineText = x => `${N(+x.oz || 0, 2)} oz ${SAB_METALS[x.metal]}`;
+    function summaryText() {
+      const c = slast;
+      const ship = c.items.filter(x => x.oz > 0).map(x => `  ${lineText(x)} @ ${R(x.price)} = ${R(x.value)}`).join('\n');
+      const l = c.lines.filter(x => x.on).map(x => `${x.label.padEnd(20)} ${R(x.ex).padStart(14)}`).join('\n');
+      return `SA Bullion insured delivery, Cape Town – ${new Date().toLocaleDateString('en-ZA')}\nMetal:\n${ship}\nMetal value: ${R(c.value)}\n\n${l}\n${'Total excl VAT'.padEnd(20)} ${R(c.ex).padStart(14)}\n${'VAT'.padEnd(20)} ${R(c.vat).padStart(14)}\n${'TOTAL incl VAT'.padEnd(20)} ${R(c.total).padStart(14)}`;
+    }
+    function fillQuote() {
+      const c = slast;
+      $('qTitle').textContent = 'SA Bullion insured delivery';
+      $('qDate').innerHTML = `<b>${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</b><br>Cape Town · SA Bullion vehicle and security`;
+      $('qShip').innerHTML = `<span>Metal</span>` + c.items.filter(x => x.oz > 0).map(x => `<div><b>${lineText(x)}</b><i>@ ${R(x.price)} per oz · ${R(x.value)}</i></div>`).join('');
+      $('qFacts').innerHTML = [['Metal value', R(c.value)], ['Ounces', N(c.oz, 2)], ['Cover', sinp.ins ? 'Insured' : 'None'], ['Liability rate', R(srates.perBand).replace('.00', '') + ' / R1m']]
+        .map(([k, v]) => `<div class="fact"><span>${k}</span><b>${v}</b></div>`).join('');
+      $('qRows').innerHTML = c.lines.filter(l => l.on).map(l => `<tr><td>${l.label}<small>${l.sub}</small></td><td>${R(l.ex)}</td><td>${R(l.vat)}</td><td>${R(l.inc)}</td></tr>`).join('') +
+        `<tr><td>Subtotal</td><td>${R(c.ex)}</td><td>${R(c.vat)}</td><td>${R(c.total)}</td></tr>` +
+        `<tr class="grand"><td>Total delivery charge<small>incl. VAT</small></td><td></td><td></td><td>${R(c.total)}</td></tr>`;
+      $('qFoot').innerHTML = `<div>Liability: ${R(srates.perBand)} per R1 million of metal value or part thereof</div><div>Prices excl VAT · VAT at ${N(srates.vatPct, 0)}% added</div>`;
+    }
+
+    buildRates(); $('sIns').setAttribute('aria-checked', !!sinp.ins); renderLines(); render();
+    setInterval(() => { if (typeof live !== 'undefined' && live.at && live.at !== seenLive) { seenLive = live.at; applySpot(); renderLines(); render(); } }, 2000);   // pick up each live-spot refresh
+    $('sAddLine').onclick = () => { const m = sinp.lines.some(x => x.metal === 'gold') ? 'silver' : 'gold'; sinp.lines.push({ metal: m, oz: 0, price: spot(m), manual: false }); renderLines(); render(); };
+    $('sIns').onclick = e => { e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
+    $('sReset').onclick = () => { sinp = clone(SAB_DEFAULT_INPUTS); applySpot(); $('sIns').setAttribute('aria-checked', true); renderLines(); render(); };
+    $('sResetRates').onclick = () => { srates = clone(SAB_RATES); put('courier.sab.rates.v4', srates); buildRates(); render(); };
+    $('sCopy').onclick = async () => { try { await navigator.clipboard.writeText(summaryText()); toast('Summary copied'); } catch { toast('Copy blocked by browser'); } };
+    $('sQuoteBtn').onclick = () => { fillQuote(); $('overlay').classList.add('on'); };
+    if (new URLSearchParams(location.search).has('sabquote')) { document.querySelector('.tab[data-view="sab"]').click(); $('sQuoteBtn').click(); }
+    window.SabCalc = { sabCalc, SAB_RATES };
   })();
 </script>
 </body>
