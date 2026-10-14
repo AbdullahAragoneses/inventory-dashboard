@@ -398,7 +398,7 @@
             <tfoot><tr class="total"><td>Total to charge client</td><td id="sEx"></td><td id="sVat"></td><td id="sInc"></td></tr></tfoot>
           </table>
           <div class="note" id="sNote"></div>
-          <div class="actions"><button class="btn primary" id="sQuoteBtn">Quote card</button><button class="btn" id="sCopy">Copy summary</button></div>
+          <div class="actions"><button class="btn primary" id="sQuoteBtn">Quote card</button><button class="btn" id="sRateBtn">Rate card</button><button class="btn" id="sCopy">Copy summary</button></div>
         </div>
       </div>
 
@@ -1260,6 +1260,24 @@
         `<tr class="grand"><td>Total delivery charge<small>incl. VAT</small></td><td></td><td></td><td>${R(c.total)}</td></tr>`;
       $('qFoot').innerHTML = `<div>Liability: ${R(srates.perBand)} per R1 million of metal value or part thereof</div><div>Prices excl VAT · VAT at ${N(srates.vatPct, 0)}% added</div>`;
     }
+
+    // Client rate card: our standing prices plus worked examples, screenshot-ready (no internal policy details).
+    function fillRateCard() {
+      const ex = v => sabCalc({ lines: [{ metal: 'gold', oz: 1, price: v }], ins: true }, srates);
+      $('qTitle').textContent = 'SA Bullion insured delivery · Rate card';
+      $('qDate').innerHTML = `<b>${new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</b><br>Cape Town`;
+      $('qShip').innerHTML = `<span>Service</span><div><b>Door-to-door delivery in Cape Town</b><i>SA Bullion vehicle and security</i></div>` +
+        `<div><b>Delivery fee</b><i>${R(srates.deliveryFee)} per delivery</i></div>` +
+        `<div><b>Liability cover</b><i>${R(srates.perBand)} per R1 million of metal value, or part thereof</i></div>`;
+      $('qFacts').innerHTML = [['Delivery fee', R(srates.deliveryFee).replace('.00', '')], ['Cover', R(srates.perBand).replace('.00', '') + ' / R1m'], ['VAT', N(srates.vatPct, 0) + '% on top'], ['Area', 'Cape Town']]
+        .map(([k, v]) => `<div class="fact"><span>${k}</span><b>${v}</b></div>`).join('');
+      $('qRows').innerHTML = [500000, 1000000, 2500000, 5000000].map(v => {
+        const c = ex(v);
+        return `<tr><td>Metal value ${R(v).replace('.00', '')}<small>${R(c.fee).replace('.00', '')} delivery + ${c.bands} × ${R(srates.perBand).replace('.00', '')} cover</small></td><td>${R(c.ex)}</td><td>${R(c.vat)}</td><td>${R(c.total)}</td></tr>`;
+      }).join('') + `<tr><td>Metal value above R 5,000,000<small>quoted on request</small></td><td></td><td></td><td></td></tr>`;
+      $('qFoot').innerHTML = `<div>Metal value at live spot on the day of delivery</div><div>Prices excl VAT · VAT at ${N(srates.vatPct, 0)}% added</div>`;
+    }
+    $('sRateBtn').onclick = () => { fillRateCard(); $('overlay').classList.add('on'); };
 
     buildRates(); $('sIns').setAttribute('aria-checked', !!sinp.ins); renderLines(); render();
     setInterval(() => { if (typeof live !== 'undefined' && live.at && live.at !== seenLive) { seenLive = live.at; applySpot(); renderLines(); render(); } }, 2000);   // pick up each live-spot refresh
