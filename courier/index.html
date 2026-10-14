@@ -434,7 +434,7 @@
       <div class="qf" id="qFoot"></div>
     </div>
   </div>
-  <div class="qactions"><button class="btn" id="qClose">Close</button></div>
+  <div class="qactions"><button class="btn" id="qCopyImg">Copy image</button><button class="btn" id="qSaveImg">Download PNG</button><button class="btn" id="qClose">Close</button></div>
 </div></div>
 <div class="toast" id="toast">Copied</div>
 
@@ -647,6 +647,31 @@
   }
   $('quoteBtn').onclick = () => { $('qTitle').textContent = 'BRINKS delivery cost'; fillQuote(); $('overlay').classList.add('on'); };
   $('qClose').onclick = () => $('overlay').classList.remove('on');
+  // Card as a picture: html-to-image loads on first use, then the card is copied to the clipboard or saved as a dated PNG.
+  let h2i, fontCSS;
+  const toDataUrl = b => new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(b); });
+  async function publicSansCSS() {   // the image can't see Google Fonts, so the Latin Public Sans files are inlined (otherwise a wider fallback font wraps lines)
+    const css = await fetch(document.querySelector('link[href*="fonts.googleapis.com/css2"]').href).then(r => r.text());
+    const faces = css.split('@font-face').slice(1).map(f => '@font-face' + f.slice(0, f.indexOf('}') + 1)).filter(f => /U\+0000-00FF/.test(f));
+    return (await Promise.all(faces.map(async f => {
+      const url = f.match(/url\(([^)]+)\)/)[1];
+      return f.replace(url, await toDataUrl(await fetch(url).then(r => r.blob())));
+    }))).join('\n');
+  }
+  const cardBlob = async () => {
+    h2i = h2i || await new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js'; s.onload = () => ok(window.htmlToImage); s.onerror = no; document.head.appendChild(s); });
+    fontCSS = fontCSS ?? await publicSansCSS().catch(() => '');
+    return h2i.toBlob($('quote'), { pixelRatio: 2, backgroundColor: '#ffffff', fontEmbedCSS: fontCSS });
+  };
+  const cardName = () => `${new Date().toISOString().slice(0, 10)} ${$('qTitle').textContent.replace(/[^\w ]+/g, ' ').replace(/\s+/g, ' ').trim()}.png`;
+  $('qCopyImg').onclick = async () => {
+    try { const b = await cardBlob(); await navigator.clipboard.write([new ClipboardItem({ 'image/png': b })]); toast('Image copied: paste it into WhatsApp or email'); }
+    catch { toast('Copy blocked by browser: use Download PNG'); }
+  };
+  $('qSaveImg').onclick = async () => {
+    try { const b = await cardBlob(), a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = cardName(); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); toast('Saved ' + a.download); }
+    catch { toast('Could not create the image'); }
+  };
   $('overlay').onclick = e => { if (e.target === $('overlay')) $('overlay').classList.remove('on'); };
 
   buildDest(); buildRates(); writeOptions(); renderLines(); render();
