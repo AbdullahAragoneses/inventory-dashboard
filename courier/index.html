@@ -1134,8 +1134,9 @@
   //   * delivery fee: flat, Cape Town only for now (R2,000)
   //   * liability:    R1,000 per R1 million of metal value, or part thereof (R7.06m = 8 bands = R8,000)
   // Metal value = ounces × live spot per oz (same feed as the BRINKS tab), or a typed price.
-  // Our own cost: specie policy cover for own-vehicle movements, 0.035% per movement up to R5m
-  // (15. RAM\RAM Insurance\RAM Tranfers Insurance Cover.xlsx, same figures as the RAM tab's own-vehicle card).
+  // Our own cost: specie policy SPECIE-0001426 (Guardrisk via RAM, schedule 5 May 2026, 15. RAM\PolicyDocumentation_SPECIE-0001426 05052026):
+  // movements over the personal conveyance limit (Woodstock R1m, Bedfordview R500k) are charged 0.035% per movement;
+  // any movement over R5m must go by armoured vehicle. Carriers must be named on the policy.
   // @@SAB-CALC-START
   const SAB_RATES = {
     vatPct: 15,
@@ -1225,8 +1226,8 @@
       $('sOwn').innerHTML = [['Policy rate', N(srates.ownInsPct, 3) + '% per movement'], ['Policy cost (excl VAT)', R(c.ownCost) + (c.ownOver ? ' · first ' + R(srates.ownMax) + ' only' : '')], ['Liability charged to client (excl VAT)', R(c.liab)]]
         .map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('');
       $('sOwnNote').innerHTML = c.ownOver
-        ? `<b>Over ${R(srates.ownMax)}: our policy does not cover this in one movement.</b> It covers own-vehicle movements up to ${R(srates.ownMax)}. Split it into ${c.trips} trips, or arrange extra cover before we deliver.`
-        : `Covered by our specie policy: ${N(srates.ownInsPct, 3)}% per own-vehicle movement, up to ${R(srates.ownMax)}.`;
+        ? `<b>Over ${R(srates.ownMax)}: we may not move this in our own vehicle.</b> Specie policy SPECIE-0001426 (May 2026): any movement over ${R(srates.ownMax)} must go by armoured vehicle. Split it into ${c.trips} trips under ${R(srates.ownMax)}, or use an armoured vehicle.`
+        : `Within our specie policy (SPECIE-0001426): ${N(srates.ownInsPct, 3)}% per movement above the personal conveyance limit, up to ${R(srates.ownMax)}. Carrier must be a person named on the policy.`;
       $('sOwnNote').style.background = c.ownOver ? 'var(--error-tint)' : 'var(--success-tint)';
     }
     function buildRates() {
