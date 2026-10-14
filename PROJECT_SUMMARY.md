@@ -193,3 +193,12 @@ Sidebar entry `products` opens **https://product-uploads.vercel.app** — a sepa
 name + password login. Nothing about the products lives in this public repo; see that repo's PROJECT_SUMMARY.md.
 `serve.py` here (Task Scheduler "Inventory Dashboard - Server") still serves the hub preview on 127.0.0.1:8787; it is
 local only and not committed. The earlier local version of the page is retired.
+
+## SA BULLION tab (2026-10-14): our own Cape Town delivery quote
+Fourth Courier Fees tab, separate from the courier calculators. It quotes deliveries we make ourselves, in our own vehicle with our own security, Cape Town only for now.
+- Inputs: one line per metal (gold or silver) in ounces, priced at live spot (same feed as BRINKS) or a typed price per oz.
+- Quote = R2,000 delivery fee + R1,000 liability per R1 million of metal value, or part thereof. Both are excl VAT, with 15% VAT added on top.
+  Guide: 103 oz gold, R7,055,023.11 = R10,000 + VAT = R11,500.
+- An internal "Our insurance" card checks specie policy SPECIE-0001426 (schedule 5 May 2026, `15. RAM\PolicyDocumentation_SPECIE-0001426 05052026`).
+  It shows the 0.035% per movement rate. Over R5m it turns red: split into trips, use an armoured vehicle, or get one-off cover from Odette.
+- Rates are editable in the rate card. localStorage keys `courier.sab.rates.v4` and `courier.sab.inputs.v3`. Commits fcae8e7, 5030bf7, 40ac161 (pushed, live).
