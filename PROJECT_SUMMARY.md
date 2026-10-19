@@ -100,6 +100,14 @@ Photos instead. Any future embedded app that uses the File System Access API nee
 - Share the link with Zubayr and Angie; retire the old Stock Take URL on the personal account.
 - Optional: single shared login across Proof + Stock Take (both use the same name+PIN pattern).
 - Optional: Merino cream (#F5EEDD) page background variant — Abdullah preferred white for now.
+- **MDS under-quotes heavy/valuable parcels (2026-10-19):** 30 kg silver Bedfordview → Olifantsfontein 410-JR, dashboard
+  R265.65 vs MDS R2,959.87. Weight IS charged (local rate ~R4.20/kg per rate sheet); the ~R2,343 excl gap is likely MDS
+  "Risk" cover on declared value (~0.25% of R915k), unconfirmed. Waiting on MDS's itemised quote to add the line.
+
+## RAM change 2026-10-19 (live)
+Value now comes from Metal + Amount (kg or oz) × live spot (Brinks tab feed; "Other" = typed value). Armoured vehicle
+auto-on above R150,000 on every route: the same-city <R1m waiver (Odette, Nov 2025) is no longer a rule, switch off by
+hand if RAM waives it. Manual switch choice resets whenever the value changes and is not kept between visits.
 
 ## RAM calculator (2026-09-25, rebuilt from Outlook quotes the same day)
 First version copied `abdullahs storage
