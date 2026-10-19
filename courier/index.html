@@ -228,7 +228,11 @@
           <div class="field"><label>Base charge <small id="rBaseHint"></small></label><div class="prefix"><input id="rBase" type="number" min="0" step="0.01"></div></div>
           <div class="live" id="rBaseNote"></div>
           <div class="sub-h">Value</div>
-          <div class="field"><label>Shipment value <small>what the parcel is worth</small></label><div class="prefix"><input id="rValue" type="number" min="0" step="1"></div></div>
+          <div class="field"><label>Metal <small>prices the shipment at live spot</small></label><select id="rMetal"><option value="gold">Gold</option><option value="silver">Silver</option><option value="platinum">Platinum</option><option value="typed">Other: type the value</option></select></div>
+          <div class="field" id="rAmtRow" style="grid-template-columns:1fr 210px"><label>Amount of metal</label>
+            <div style="display:grid;grid-template-columns:1fr 80px;gap:6px"><input id="rAmt" type="number" min="0" step="any"><select id="rUnit"><option value="kg">kg</option><option value="oz">oz</option></select></div></div>
+          <div class="field"><label>Shipment value <small id="rValueHint">what the parcel is worth</small></label><div class="prefix"><input id="rValue" type="number" min="0" step="1"></div></div>
+          <div class="live" id="rValueNote"></div>
           <div class="sub-h">Options</div>
           <div class="field chk"><label id="rAvLbl">Armoured vehicle</label><button class="switch" id="rAv" role="switch" aria-checked="true"></button></div>
           <div class="live" id="rAvNote" style="margin-top:-2px;padding-bottom:8px"></div>
@@ -538,6 +542,7 @@
   function applyLive() {
     if (live.zar) for (const l of inp.lines) if (!l.manual) l.price = Math.round(livePrice(l) * 100) / 100;
     renderLines(); renderLive(); render();
+    document.dispatchEvent(new Event('courier-live'));   // RAM tab prices metal from the same feed
   }
   function renderLive() {
     const el = $('live');
@@ -712,7 +717,8 @@
   //   * RAM put prices up 6% in April 2026 (e.g. R1,776.55 -> R1,883.11); fuel % moves monthly
   //   * face to face is a flat fee and is charged with or without an armoured vehicle
   //   * Part 108 applies because SA Bullion is a known shipper (Mandre, 31 Aug 2026)
-  //   * armoured vehicle waived under R1m when collected and delivered in the same city, JHB or CPT (Odette, 13 Nov 2025)
+  //   * armoured vehicle switches on above R150,000, any route (Abdullah, 19 Oct 2026). Odette waived it once under R1m
+  //     same city (13 Nov 2025); that is now a manual switch-off, not a rule
   //   * no armoured vehicle in East London: RAM bills an armed escort at the same price
   // @@RAM-CALC-START
   const RAM_HUBS = {   // code: [name, city group for the same-city waiver]
@@ -732,8 +738,7 @@
     insMin: 50,              // quote 19 May 2026: R10,000 insured gave R50.00, so a minimum premium
     vatPct: 15,
     volDivisor: 5000,        // quotes and rate card (demand services)
-    avLimit: 150000,         // armoured vehicle needed above this value (workbook rule)
-    waiverLimit: 1000000,    // same-city JHB or CPT under this value: no armoured vehicle (Odette 13 Nov 2025)
+    avLimit: 150000,         // armoured vehicle switches on above this value (Abdullah, 19 Oct 2026)
     policyAvLimit: 5000000,  // our specie policy: movements over R5m must use an armoured vehicle
     saturday: 137.15, afterHours: 525,   // RAM rate card PDF
     ownInsPct: 0.035, ownMax: 5000000,   // own-vehicle cover, RAM Tranfers Insurance Cover.xlsx
@@ -747,7 +752,7 @@
   const RAM_FUEL_HISTORY = [['Sep 2024', 47.17], ['Sep 2025', 46.88], ['Oct 2025', 46.89], ['Nov 2025', 46.30], ['Dec 2025', 46.64], ['Jan 2026', 45.91], ['Feb 2026', 45.12],
                             ['Mar 2026', 45.38], ['Apr 2026', 49.16], ['May 2026', 52.68], ['Jun 2026', 54.03], ['Aug 2026', 51.73]];
   // Default = RAM's latest quote (31 Aug 2026, Bedfordview to Gillitts, 2 kg, R950,000, with liability): R17,097.73
-  const RAM_DEFAULT_INPUTS = { from: 'ISA', to: 'DBN', kg: 2, l: 30, w: 20, h: 20, base: 0, manualBase: false, value: 950000,
+  const RAM_DEFAULT_INPUTS = { from: 'ISA', to: 'DBN', kg: 2, l: 30, w: 20, h: 20, base: 0, manualBase: false, value: 950000, metal: 'typed', amt: 0, unit: 'kg',
                                avOverride: null, f2f: true, p108: true, ins: true, sat: false, after: false, mk: 'fixed', mkVal: 0, ownValue: 4999999 };
 
   // Base charge from the weight bands: exact on a quoted point, estimated in between (straight line), flat below the first point.
@@ -769,14 +774,10 @@
     const band = ramBandBase(r.bands, chargeKg);
     const base = Math.round((i.manualBase ? (+i.base || 0) : band.base) * 100) / 100;
     const value = +i.value || 0;
-    const gFrom = (RAM_HUBS[i.from] || [])[1], gTo = (RAM_HUBS[i.to] || [])[1];
-    const sameCity = gFrom && gFrom === gTo && (gFrom === 'JHB' || gFrom === 'CPT');
-    const waived = sameCity && value < r.waiverLimit;
     const policyForces = value > r.policyAvLimit;
-    const avAuto = policyForces || (value > r.avLimit && !waived);
+    const avAuto = value > r.avLimit;
     const avReason = policyForces ? `value over ${R(r.policyAvLimit)}: our policy requires it`
-      : waived ? `waived: same city (${gFrom}) and under ${R(r.waiverLimit)}`
-      : value > r.avLimit ? `value over ${R(r.avLimit)}` : `value under ${R(r.avLimit)}`;
+      : avAuto ? `value over ${R(r.avLimit)}` : `value under ${R(r.avLimit)}`;
     const avOn = i.avOverride === null || i.avOverride === undefined ? avAuto : !!i.avOverride;
     const escort = i.from === 'ELS' || i.to === 'ELS';
     const c2 = n => Math.round(n * 100) / 100;                          // RAM rounds every line to the cent
@@ -799,7 +800,7 @@
     const markup = i.mk === 'pct' ? sub * (+i.mkVal || 0) / 100 : (+i.mkVal || 0);
     const clientEx = sub + markup, clientVat = clientEx * r.vatPct / 100;
     const ownCost = Math.min(+i.ownValue || 0, r.ownMax) * r.ownInsPct / 100;
-    return { vol, chargeKg, band, base, value, sameCity, waived, avAuto, avOn, avReason, escort, avName, fuel, av, lines, sub, vat, total: sub + vat,
+    return { vol, chargeKg, band, base, value, avAuto, avOn, avReason, escort, avName, fuel, av, lines, sub, vat, total: sub + vat,
              markup, clientEx, clientVat, clientTotal: clientEx + clientVat, markupPct: sub ? markup / sub : 0,
              ownCost, ownVat: ownCost * r.vatPct / 100, ownTotal: ownCost * (1 + r.vatPct / 100), ownOver: (+i.ownValue || 0) > r.ownMax };
   }
@@ -813,9 +814,19 @@
     let rates = { ...clone(RAM_RATES), ...get('courier.ram.rates.v2', RAM_RATES) };
     if (!Array.isArray(rates.bands) || !rates.bands.length) rates.bands = clone(RAM_RATES.bands);
     let inp = { ...clone(RAM_DEFAULT_INPUTS), ...get('courier.ram.inputs.v2', RAM_DEFAULT_INPUTS) };
+    delete rates.waiverLimit;
+    inp.avOverride = null;   // a manual armoured-vehicle choice never carries over to the next visit
     const SW = { f2f: 'rF2f', p108: 'rP108', ins: 'rIns', sat: 'rSat', after: 'rAfter' };
-    const NUM = [['rKg', 'kg'], ['rL', 'l'], ['rW', 'w'], ['rH', 'h'], ['rValue', 'value'], ['rMkVal', 'mkVal'], ['oValue', 'ownValue']];
+    const NUM = [['rKg', 'kg'], ['rL', 'l'], ['rW', 'w'], ['rH', 'h'], ['rValue', 'value'], ['rAmt', 'amt'], ['rMkVal', 'mkVal'], ['oValue', 'ownValue']];
     let last;
+
+    // Shipment value from metal: amount (kg or oz) × live spot per oz from the Brinks tab's feed (perOz, gramsPerOz).
+    function metalValue() {
+      if (inp.metal === 'typed') return null;
+      const oz = inp.unit === 'oz' ? +inp.amt || 0 : (+inp.amt || 0) * 1000 / DEFAULT_RATES.gramsPerOz;
+      const p = perOz(inp.metal);
+      return p ? { oz, perOz: p, value: Math.round(oz * p) } : { oz, perOz: 0, value: null };
+    }
 
     function buildHubs() {
       const opts = Object.entries(RAM_HUBS).map(([c, [n]]) => `<option value="${c}">${c} · ${n}</option>`).join('');
@@ -824,13 +835,15 @@
     function writeInputs() {
       $('rFrom').value = inp.from in RAM_HUBS ? inp.from : 'ISA'; $('rTo').value = inp.to in RAM_HUBS ? inp.to : 'DBN';
       for (const [id, k] of NUM) $(id).value = inp[k];
-      $('rMk').value = inp.mk; $('rBase').value = inp.base;
+      $('rMk').value = inp.mk; $('rBase').value = inp.base; $('rMetal').value = inp.metal; $('rUnit').value = inp.unit;
       for (const [k, id] of Object.entries(SW)) $(id).setAttribute('aria-checked', !!inp[k]);
     }
     function readInputs() {
       inp.from = $('rFrom').value; inp.to = $('rTo').value;
       for (const [id, k] of NUM) inp[k] = +$(id).value || 0;
-      inp.mk = $('rMk').value;
+      inp.mk = $('rMk').value; inp.metal = $('rMetal').value; inp.unit = $('rUnit').value;
+      const mv = metalValue();
+      if (mv && mv.value !== null) { inp.value = mv.value; $('rValue').value = mv.value; }
       for (const [k, id] of Object.entries(SW)) inp[k] = $(id).getAttribute('aria-checked') === 'true';
       put('courier.ram.inputs.v2', inp);
     }
@@ -846,6 +859,13 @@
         : c.band.kind === 'quote' ? `<span class="pill">RAM QUOTE</span> ${c.band.src}`
         : `<span class="pill manual">ESTIMATE</span> Between quoted weights. Ask RAM for a quote and type it in to be exact.`;
       if ($('rUseBand')) $('rUseBand').onclick = () => { inp.manualBase = false; render(); };
+      const mv = metalValue(), typed = inp.metal === 'typed';
+      $('rAmtRow').style.display = typed ? 'none' : '';
+      $('rValue').readOnly = !typed && mv.value !== null;
+      $('rValueHint').textContent = typed ? 'what the parcel is worth' : 'worked out from the metal';
+      $('rValueNote').innerHTML = typed ? ''
+        : mv.value === null ? `<span class="pill manual">NO SPOT</span> Live price not loaded yet. Type the value, or wait for the feed.`
+        : `<span class="pill">LIVE SPOT</span> ${N(mv.oz, 2)} oz × ${R(mv.perOz)} per oz${inp.unit === 'kg' ? ` (${N(+inp.amt || 0, 3)} kg)` : ''}`;
       $('rAvLbl').innerHTML = `${c.avName} <small>${c.escort ? 'RAM has no armoured vehicle in East London; armed escort, same price' : 'switches itself on and off from the rules'}</small>`;
       $('rAv').setAttribute('aria-checked', c.avOn);
       const overridden = inp.avOverride !== null && inp.avOverride !== undefined;
@@ -871,7 +891,7 @@
     function buildRates() {
       const labels = { fuelPct: 'Fuel surcharge % (monthly)', waybill: 'Waybill (R)', av: 'Armoured vehicle / escort (R)', f2f: 'Face to face (R, flat)', part108: 'Part 108 (R)',
         insPct: 'Liability % of value', insMin: 'Liability minimum (R)', vatPct: 'VAT %', volDivisor: 'Volumetric divisor (cm³/kg)', avLimit: 'Armoured vehicle needed above (R)',
-        waiverLimit: 'Same-city waiver below (R)', policyAvLimit: 'Policy: armoured vehicle above (R)', saturday: 'Saturday (R)', afterHours: 'After hours (R)', ownInsPct: 'Own-vehicle cover % per movement', ownMax: 'Own-vehicle max cover (R)' };
+        policyAvLimit: 'Policy: armoured vehicle above (R)', saturday: 'Saturday (R)', afterHours: 'After hours (R)', ownInsPct: 'Own-vehicle cover % per movement', ownMax: 'Own-vehicle max cover (R)' };
       $('rRates').innerHTML = '';
       for (const [k, lbl] of Object.entries(labels)) {
         const d = document.createElement('div'); d.className = 'field';
@@ -904,8 +924,11 @@
     }
 
     buildHubs(); buildRates(); writeInputs(); render();
+    const valueChanged = () => { inp.avOverride = null; render(); };   // new value: armoured vehicle back to automatic
     for (const id of ['rFrom', 'rTo', 'rMk']) $(id).addEventListener('change', render);
-    for (const [id] of NUM) $(id).addEventListener('input', render);
+    for (const id of ['rMetal', 'rUnit']) $(id).addEventListener('change', valueChanged);
+    for (const [id, k] of NUM) $(id).addEventListener('input', k === 'value' || k === 'amt' ? valueChanged : render);
+    document.addEventListener('courier-live', valueChanged);
     $('rBase').addEventListener('input', () => { inp.manualBase = true; inp.base = +$('rBase').value || 0; render(); });
     $('rAv').onclick = () => { inp.avOverride = !(last && last.avOn); render(); };
     for (const id of Object.values(SW)) $(id).onclick = e => { e.currentTarget.setAttribute('aria-checked', e.currentTarget.getAttribute('aria-checked') !== 'true'); render(); };
